@@ -1001,7 +1001,7 @@ function navigate(to) {
       const vibeName = state.mood.replace('drinks_','').replace(/_/g,' ');
       moodLabel = vibeName.charAt(0).toUpperCase() + vibeName.slice(1);
       moodEmoji = state.moodEmoji;
-    } else if (state.mood === 'social') {
+    } else if (state.isDrinksMode && state.mood === 'social') {
       moodLabel = 'Drinks'; moodEmoji = '🥂';
     } else if (state.mood === 'feed') {
       moodLabel = 'Feed Me'; moodEmoji = '🎲';
@@ -1019,7 +1019,7 @@ function navigate(to) {
     bpill.textContent = 'Any budget';
     bpill.style.color = ''; bpill.style.fontWeight = '500'; bpill.style.borderColor = '';
     const cpill = document.getElementById('results-cuisine-pill');
-    const isDrinksMode = state.mood && state.mood.startsWith('drinks_') || state.mood === 'social';
+    const isDrinksMode = state.isDrinksMode === true;
     cpill.style.display = isDrinksMode ? 'none' : '';
     if (savedCuisine && !isDrinksMode) {
       cpill.textContent = savedCuisine;
@@ -1069,6 +1069,7 @@ const moodEmojis = {
 };
 
 function selectMood(el, mood, emoji) {
+  state.isDrinksMode = false; // food tab always clears drinks mode
   const alreadySelected = el.classList.contains('sel');
   document.querySelectorAll('.table-row').forEach(r => r.classList.remove('sel'));
   if (alreadySelected) {
@@ -1139,6 +1140,7 @@ function pickDist(el) {
 function selectDrinksVibe(el, label, emoji, keyword) {
   document.querySelectorAll('#drinks-mode-content .table-row').forEach(r => r.classList.remove('sel'));
   const alreadySelected = el.classList.contains('sel');
+  state.isDrinksMode = true;
   if (alreadySelected) {
     el.classList.remove('sel');
     state.mood = 'social'; state.moodEmoji = '🥂';
@@ -1160,11 +1162,12 @@ function setMode(btn) {
   document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   const isDrinks = btn.textContent.includes('Drinks');
+  state.isDrinksMode = isDrinks;
   // Toggle food vs drinks UI
   document.getElementById('food-mode-content').style.display = isDrinks ? 'none' : 'block';
   document.getElementById('drinks-mode-content').style.display = isDrinks ? 'block' : 'none';
   // Reset state
-  state.mood = null; state.moodEmoji = '';
+  state.mood = isDrinks ? 'social' : null; state.moodEmoji = isDrinks ? '🥂' : '';
   state.cuisine = 'Any cuisine'; state.budget = 'Any';
   document.querySelectorAll('.table-row').forEach(r => r.classList.remove('sel'));
   document.getElementById('ctaTag').textContent = isDrinks ? 'Bar near you' : 'Near you now';
@@ -1177,6 +1180,7 @@ function goResults() {
   if (!state.mood) {
     state.mood = 'feed';
     state.moodEmoji = '🍽️';
+    state.isDrinksMode = false;
   }
   navigate('results');
 }
@@ -1783,6 +1787,12 @@ function loadResults() {
       </div>
     </div>`;
   document.getElementById('results-end').style.display = 'none';
+
+  // If a city was already selected (via city switcher or GPS), use those coords directly
+  if (userLat !== null && userLng !== null) {
+    fetchPlaces(userLat, userLng);
+    return;
+  }
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
