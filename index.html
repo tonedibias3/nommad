@@ -199,7 +199,7 @@ body {
 /* ─── FILTERS ────────────────────────────────────────────── */
 .filters-inline {
   margin: 0 20px;
-  overflow: hidden; max-height: 0; opacity: 0;
+  overflow: hidden; max-height: 300px; opacity: 1;
   transition: max-height 0.3s ease, opacity 0.22s ease;
   background: var(--card);
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
@@ -251,6 +251,7 @@ body {
   overflow: hidden; max-height: 0; opacity: 0;
   transition: max-height 0.3s ease, opacity 0.25s ease, padding 0.3s ease;
 }
+.cta-wrap { max-height: 80px !important; opacity: 1 !important; padding: 12px 20px 0 !important; }
 .cta-wrap.open { max-height: 80px; opacity: 1; padding: 12px 20px 0; }
 .cta-btn {
   width: 100%; background: var(--accent); border: none;
@@ -676,13 +677,13 @@ body {
 
         <span class="fi-label">Cuisine — optional</span>
         <div class="chip-row" id="cuisineChips" style="margin-bottom:10px;">
-          <div class="chip active" onclick="pickCuisine(this)">Any</div>
-          <div class="chip" onclick="pickCuisine(this)">Pizza</div>
-          <div class="chip" onclick="pickCuisine(this)">BBQ</div>
-          <div class="chip" onclick="pickCuisine(this)">Sushi</div>
-          <div class="chip" onclick="pickCuisine(this)">Mexican</div>
-          <div class="chip" onclick="pickCuisine(this)">Burgers</div>
-          <div class="chip" onclick="pickCuisine(this)">Southern</div>
+          <div class="chip active" onclick="pickHomeCuisine(this)">Any</div>
+          <div class="chip" onclick="pickHomeCuisine(this)">Pizza</div>
+          <div class="chip" onclick="pickHomeCuisine(this)">BBQ</div>
+          <div class="chip" onclick="pickHomeCuisine(this)">Sushi</div>
+          <div class="chip" onclick="pickHomeCuisine(this)">Mexican</div>
+          <div class="chip" onclick="pickHomeCuisine(this)">Burgers</div>
+          <div class="chip" onclick="pickHomeCuisine(this)">Southern</div>
         </div>
 
         <div class="toggle-row">
@@ -698,7 +699,7 @@ body {
     <div class="cta-wrap" id="ctaWrap">
       <button class="cta-btn" onclick="goResults()">
         Find My Spot
-        <span class="cta-tag" id="ctaTag">Comfort 🫶</span>
+        <span class="cta-tag" id="ctaTag">Near you now</span>
       </button>
     </div>
 
@@ -904,6 +905,16 @@ function goBack() {
   const results = document.getElementById('page-results');
   results.classList.remove('active');
   home.classList.remove('exit-left');
+  // Reset mood + selections so home is fresh
+  state.mood = null;
+  state.moodEmoji = '';
+  state.cuisine = 'Any cuisine';
+  state.budget = 'Any';
+  document.querySelectorAll('.table-row').forEach(r => r.classList.remove('sel'));
+  document.querySelectorAll('#cuisineChips .chip').forEach((c,i) => c.classList.toggle('active', i===0));
+  document.querySelectorAll('#budgetChips .chip').forEach(c => c.classList.remove('active'));
+  document.getElementById('ctaTag').textContent = 'Near you now';
+  document.getElementById('moodTable').style.borderRadius = '';
 }
 
 /* ─── HOME INTERACTIONS ──────────────────────────────────── */
@@ -921,28 +932,54 @@ function selectMood(el, mood, emoji) {
   el.classList.add('sel');
   state.mood = mood;
   state.moodEmoji = emoji;
-  document.getElementById('ctaTag').textContent = `${moodLabels[mood]} ${emoji}`;
   document.getElementById('moodTable').style.borderRadius = '16px 16px 0 0';
   document.getElementById('filtersInline').classList.add('open');
   document.getElementById('ctaWrap').classList.add('open');
+  updateCtaTag();
+}
+
+function updateCtaTag() {
+  const tag = document.getElementById('ctaTag');
+  if (!tag) return;
+  if (state.mood && state.mood !== 'feed') {
+    const label = moodLabels[state.mood] || state.mood;
+    const emoji = state.moodEmoji || '';
+    tag.textContent = `${label} ${emoji}`;
+  } else if (state.cuisine && state.cuisine !== 'Any cuisine') {
+    tag.textContent = `${state.cuisine} near you`;
+  } else {
+    tag.textContent = 'Near you now';
+  }
 }
 
 function pickOne(el, group) {
   el.parentNode.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
-  if (group === 'budget') state.budget = el.textContent.trim();
+  if (group === 'budget') {
+    state.budget = el.textContent.trim();
+    // Show CTA even if no mood selected
+    document.getElementById('ctaWrap').classList.add('open');
+    updateCtaTag();
+  }
 }
 
-function pickCuisine(el) {
+function pickHomeCuisine(el) {
   if (el.textContent === 'Any') {
     el.parentNode.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
-    state.cuisine = 'Any';
+    state.cuisine = 'Any cuisine';
   } else {
     el.parentNode.querySelector('.chip').classList.remove('active'); // deselect Any
-    el.classList.toggle('active');
+    el.parentNode.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
     state.cuisine = el.textContent;
+    // If no mood selected, auto-set to feed so they can search by cuisine alone
+    if (!state.mood) {
+      state.mood = 'feed';
+      state.moodEmoji = '🍽️';
+    }
   }
+  updateCtaTag();
 }
 
 function pickDist(el) {
@@ -956,12 +993,10 @@ function setMode(btn) {
 }
 
 function goResults() {
+  // Mood is optional — if nothing picked, use 'feed' (open search)
   if (!state.mood) {
-    // pulse the mood section to prompt selection
-    const tbl = document.getElementById('moodTable');
-    tbl.style.outline = '2px solid var(--accent)';
-    setTimeout(() => tbl.style.outline = '', 800);
-    return;
+    state.mood = 'feed';
+    state.moodEmoji = '🍽️';
   }
   navigate('results');
 }
@@ -1097,7 +1132,7 @@ const moodConfig = {
   adventure: { keyword: 'unique ethnic fusion international restaurant', minPrice: 1, maxPrice: 3 },
   fancy:     { keyword: 'fine dining upscale steakhouse restaurant', minPrice: 2, maxPrice: 4 },
   quick:     { keyword: 'fast casual sandwich burrito bowl', minPrice: 0, maxPrice: 2 },
-  social:    { keyword: 'bar gastropub lively happy hour', minPrice: 1, maxPrice: 3 },
+  social:    { keyword: 'bar dive bar sports bar wine bar brewery taproom gastropub', minPrice: 0, maxPrice: 3, type: 'bar' },
   feed:      { keyword: 'restaurant', minPrice: 0, maxPrice: 4 },
   search:    { keyword: 'restaurant', minPrice: 0, maxPrice: 4 },
 };
@@ -1326,10 +1361,13 @@ function fetchPlaces(lat, lng) {
   const budgetMap = { '$': [0,1], '$$': [1,2], '$$$': [2,3], '$$$$': [3,4] };
   const [minPrice, maxPrice] = budgetMap[state.budget] || [config.minPrice, config.maxPrice];
 
+  // Social mood searches bars; everything else searches restaurants
+  const placeType = config.type || 'restaurant';
+
   const request = {
     location: new google.maps.LatLng(lat, lng),
-    radius: 5000, // ~3 miles
-    type: 'restaurant',
+    radius: 8000, // ~5 miles (slightly wider for bar searches)
+    type: placeType,
     keyword: keyword,
     minPriceLevel: minPrice,
     maxPriceLevel: maxPrice,
