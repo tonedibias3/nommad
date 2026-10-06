@@ -931,22 +931,29 @@ function navigate(to) {
   if (to === 'results') {
     home.classList.add('exit-left');
     results.classList.add('active');
-    // update results header from state
-    const moodLabel = (state.mood && moodLabels[state.mood])
+    // update results header — show cuisine if set, otherwise mood
+    const savedCuisine = state.cuisine && state.cuisine !== 'Any cuisine' ? state.cuisine : null;
+    const moodLabel = (state.mood && state.mood !== 'feed' && moodLabels[state.mood])
       ? moodLabels[state.mood]
-      : (state.mood ? state.mood.charAt(0).toUpperCase() + state.mood.slice(1) : 'Results');
+      : savedCuisine ? savedCuisine : 'Find My Spot';
+    const moodEmoji = (state.mood && state.mood !== 'feed') ? state.moodEmoji : '';
     document.getElementById('results-nav-title').textContent = moodLabel;
-    document.getElementById('results-mood-pill').textContent = `${state.moodEmoji} ${moodLabel}`;
-    // Reset filter pills to default state
+    document.getElementById('results-mood-pill').textContent = moodEmoji ? `${moodEmoji} ${moodLabel}` : moodLabel;
+    // Reset budget/localOnly but KEEP cuisine from home screen selection
     state.budget = 'Any';
-    state.cuisine = 'Any cuisine';
     localOnlyActive = false;
     const bpill = document.getElementById('results-budget-pill');
     bpill.textContent = 'Any budget';
     bpill.style.color = ''; bpill.style.fontWeight = '500'; bpill.style.borderColor = '';
     const cpill = document.getElementById('results-cuisine-pill');
-    cpill.textContent = 'Any cuisine';
-    cpill.style.color = ''; cpill.style.fontWeight = '500'; cpill.style.borderColor = '';
+    if (savedCuisine) {
+      cpill.textContent = savedCuisine;
+      cpill.style.color = 'var(--accent)'; cpill.style.fontWeight = '700'; cpill.style.borderColor = 'rgba(212,84,26,0.4)';
+    } else {
+      state.cuisine = 'Any cuisine';
+      cpill.textContent = 'Any cuisine';
+      cpill.style.color = ''; cpill.style.fontWeight = '500'; cpill.style.borderColor = '';
+    }
     const lpill = document.getElementById('results-localonly-pill');
     lpill.style.background = ''; lpill.style.color = ''; lpill.style.fontWeight = '500'; lpill.style.borderColor = '';
     // scroll results to top
@@ -984,13 +991,21 @@ const moodEmojis = {
 };
 
 function selectMood(el, mood, emoji) {
+  const alreadySelected = el.classList.contains('sel');
   document.querySelectorAll('.table-row').forEach(r => r.classList.remove('sel'));
-  el.classList.add('sel');
-  state.mood = mood;
-  state.moodEmoji = emoji;
-  document.getElementById('moodTable').style.borderRadius = '16px 16px 0 0';
-  document.getElementById('filtersInline').classList.add('open');
-  document.getElementById('ctaWrap').classList.add('open');
+  if (alreadySelected) {
+    // Deselect — tap again to clear
+    state.mood = null;
+    state.moodEmoji = '';
+    document.getElementById('moodTable').style.borderRadius = '';
+  } else {
+    el.classList.add('sel');
+    state.mood = mood;
+    state.moodEmoji = emoji;
+    document.getElementById('moodTable').style.borderRadius = '16px 16px 0 0';
+    document.getElementById('filtersInline').classList.add('open');
+    document.getElementById('ctaWrap').classList.add('open');
+  }
   updateCtaTag();
 }
 
@@ -1266,6 +1281,23 @@ function openUrl(url) {
   window.open(url, '_blank', 'noopener');
 }
 
+function openMenuForPlace(placeId, encodedName, encodedWebsite) {
+  const website = decodeURIComponent(encodedWebsite);
+  const name = decodeURIComponent(encodedName);
+  if (website) {
+    openUrl(website);
+    return;
+  }
+  // No website on the card — fetch details to check
+  if (!placesService) initPlaces();
+  placesService.getDetails({ placeId, fields: ['website'] }, (detail, status) => {
+    const url = (status === google.maps.places.PlacesServiceStatus.OK && detail?.website)
+      ? detail.website
+      : `https://www.google.com/search?q=${encodeURIComponent(name + ' Augusta GA menu')}`;
+    openUrl(url);
+  });
+}
+
 /* ─── SEARCH ─────────────────────────────────────────────── */
 document.getElementById('quickInput').addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.value.trim()) {
@@ -1280,6 +1312,26 @@ document.getElementById('quickInput').addEventListener('keydown', e => {
 <!-- ─── GOOGLE PLACES API ──────────────────────────────────── -->
 <script>
 const PLACES_KEY = 'AIzaSyA3Uvt9HcTG5-gaI9KA-LpZ5Hvqsv9-8B0';
+
+// Known national chains to filter out when localOnly is active
+const CHAIN_NAMES = [
+  'mcdonald','burger king','wendy','chick-fil-a','taco bell','subway','domino',
+  'pizza hut','papa john','little caesar','popeyes','kfc','bojangles','hardee',
+  'sonic','arby','dairy queen','applebee','chili','olive garden','red lobster',
+  'outback','ihop','denny','waffle house','cracker barrel','golden corral',
+  'panera','starbucks','dunkin','chipotle','qdoba','panda express','five guys',
+  'shake shack','whataburger','cookout','zaxby','cook out','raising cane',
+  'wingstop','buffalo wild wings','hooters','twin peaks','longhorn','texas roadhouse',
+  'ruby tuesday','cheesecake factory','red robin','noodles & company','potbelly',
+  'jersey mike','jimmy john','firehouse','moe\'s','wingstop','captain d',
+  'church\'s chicken','el pollo loco','del taco','jack in the box','in-n-out',
+  'smoothie king','tropical smoothie','jamba','auntie anne','cinnabon','pretzelmaker'
+];
+
+function isChain(place) {
+  const name = (place.name || '').toLowerCase();
+  return CHAIN_NAMES.some(chain => name.includes(chain));
+}
 
 // Mood → search config mapping
 const moodConfig = {
@@ -1348,8 +1400,9 @@ function buildCard(place, index, userLat, userLng) {
     distHtml = `<div class="r-distance">${toMiles(dist)} mi</div>`;
   }
 
-  const menuUrl = website || `https://www.google.com/search?q=${encodeURIComponent(name + ' menu')}`;
-  const menuBtn = `<div class="act" onclick="event.stopPropagation();openUrl('${menuUrl}')">
+  // Menu: use website if available, otherwise fetch details to find it, fallback to Google search
+  const placeIdForMenu = place.place_id || '';
+  const menuBtn = `<div class="act" id="menu-btn-${placeIdForMenu}" onclick="event.stopPropagation();openMenuForPlace('${placeIdForMenu}','${encodeURIComponent(name)}','${encodeURIComponent(website)}')">
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
     Menu
   </div>`;
@@ -1538,12 +1591,15 @@ function fetchPlaces(lat, lng) {
     // Filter to open places only
     const open = results.filter(p => p.opening_hours?.open_now !== false);
     // Filter out places more than 15 miles away (24140m) to prevent Google expanding radius
-    const nearby = (open.length > 0 ? open : results).filter(p => {
+    const withinRange = (open.length > 0 ? open : results).filter(p => {
       if (!p.geometry?.location) return true;
       const d = calcDist(p.geometry.location.lat(), p.geometry.location.lng(), lat, lng);
       return d <= 24140; // 15 miles
     });
-    const pool = nearby.length > 0 ? nearby : (open.length > 0 ? open : results);
+    // Filter chains if localOnly toggle is on
+    const localToggleOn = document.getElementById('localToggle')?.classList.contains('on');
+    const filtered = localToggleOn ? withinRange.filter(p => !isChain(p)) : withinRange;
+    const pool = filtered.length > 0 ? filtered : withinRange;
     const top = pool.slice(0, 6);
 
     // Store globally for re-sorting
