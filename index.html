@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Nommad</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,400&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ─────────────────────────────────────────────── */
+:root {
+  --bg:        #f2f2f7;
+  --card:      #ffffff;
+  --ink:       #1c1c1e;
+  --ink2:      #3a3a3c;
+  --ink3:      #6d6d72;
+  --sep:       #c6c6c8;
+  --sep-lt:    #e5e5ea;
+  --accent:    #d4541a;
+  --accent-bg: #fff2ec;
+  --green:     #34c759;
+  --radius:    12px;
+  --radius-lg: 16px;
+  --ui:        'Satoshi', -apple-system, sans-serif;
+  --display:   'Fraunces', Georgia, serif;
+}
+
+/* ─── SKELETON LOADING ───────────────────────────────────── */
+.skel-photo {
+  width: 100%; height: 180px;
+  background: linear-gradient(90deg, #e8e8ed 25%, #f2f2f7 50%, #e8e8ed 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+.skel-line {
+  border-radius: 6px;
+  background: linear-gradient(90deg, #e8e8ed 25%, #f2f2f7 50%, #e8e8ed 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  background: #e2e2e8;
+  color: var(--ink);
+  font-family: var(--ui);
+  min-height: 100vh;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 32px 0 48px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── SHELL ──────────────────────────────────────────────── */
+.shell {
+  width: 390px;
+  height: 844px;
+  background: var(--bg);
+  border-radius: 44px;
+  box-shadow: 0 28px 64px rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.07);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ─── PAGE SYSTEM ────────────────────────────────────────── */
+.page {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  background: var(--bg);
+  transform: translateX(100%);
+  transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+.page.active   { transform: translateX(0); }
+.page.exit-left { transform: translateX(-28%); }
+
+/* ─── STATUS BAR ─────────────────────────────────────────── */
+.statusbar {
+  padding: 14px 24px 0;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-shrink: 0;
+}
+.st-time { font-size: 15px; font-weight: 600; color: var(--ink); letter-spacing: -0.2px; }
+.st-icons { display: flex; gap: 6px; align-items: center; }
+.st-icons svg { width: 16px; height: 16px; fill: var(--ink); }
+
+/* ─── HOME: LARGE TITLE ──────────────────────────────────── */
+.large-title-bar {
+  padding: 4px 20px 10px;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  flex-shrink: 0;
+}
+.app-name {
+  font-family: var(--display);
+  font-size: 36px; font-weight: 400; font-style: italic;
+  letter-spacing: -0.5px; color: var(--ink); line-height: 1.0;
+}
+.app-name em { color: var(--accent); font-style: italic; }
+.loc-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--card); border: 1px solid var(--sep-lt);
+  border-radius: 100px; padding: 5px 11px 5px 8px;
+  font-size: 12px; font-weight: 500; color: var(--ink3);
+  margin-bottom: 4px; cursor: pointer;
+}
+.loc-dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; flex-shrink: 0; }
+
+/* ─── SEGMENTED CONTROL ──────────────────────────────────── */
+.seg-wrap { padding: 0 20px 14px; flex-shrink: 0; }
+.seg {
+  background: rgba(118,118,128,0.12);
+  border-radius: 9px; padding: 2px; display: flex;
+}
+.seg-btn {
+  flex: 1; text-align: center;
+  padding: 7px 0; border-radius: 7px;
+  font-size: 13px; font-weight: 500; color: var(--ink3);
+  cursor: pointer; transition: all 0.2s; user-select: none;
+}
+.seg-btn.active {
+  background: var(--card); color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* ─── SCROLL CONTAINER ───────────────────────────────────── */
+.scroll {
+  flex: 1; overflow-y: auto; scrollbar-width: none;
+  padding: 0 0 90px;
+}
+.scroll::-webkit-scrollbar { display: none; }
+
+/* ─── SECTION HEADER ─────────────────────────────────────── */
+.sec-hdr {
+  padding: 20px 20px 8px;
+  font-size: 20px; font-weight: 700;
+  color: var(--ink); letter-spacing: -0.3px;
+}
+
+/* ─── SEARCH BAR ─────────────────────────────────────────── */
+.search-wrap { padding: 0 20px 8px; }
+.search-bar {
+  background: rgba(118,118,128,0.12);
+  border-radius: 10px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 13px; transition: background 0.15s;
+}
+.search-bar:focus-within {
+  background: var(--card);
+  box-shadow: 0 0 0 1.5px var(--accent);
+}
+.search-bar svg { width: 15px; height: 15px; fill: var(--ink3); flex-shrink: 0; }
+.search-bar input {
+  flex: 1; background: none; border: none; outline: none;
+  font-size: 15px; color: var(--ink); font-family: var(--ui);
+}
+.search-bar input::placeholder { color: var(--ink3); }
+
+/* ─── MOOD TABLE ─────────────────────────────────────────── */
+.table-card {
+  margin: 0 20px;
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.table-row {
+  display: flex; align-items: center; gap: 13px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--sep-lt);
+  cursor: pointer; transition: background 0.1s;
+  position: relative;
+}
+.table-row:last-child { border-bottom: none; }
+.table-row:active { background: #f5f5f5; }
+.table-row.sel { background: var(--accent-bg); }
+
+.row-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.ic-comfort   { background: #fde3cf; }
+.ic-adventure { background: #dff0e8; }
+.ic-fancy     { background: #f5edda; }
+.ic-quick     { background: #fde8c5; }
+.ic-social    { background: #f5dfd6; }
+
+.row-body { flex: 1; min-width: 0; }
+.row-title { font-size: 15px; font-weight: 600; color: var(--ink); }
+.row-sub   { font-size: 13px; color: var(--ink3); margin-top: 1px; font-weight: 400; }
+.row-chev  { color: #c0c0c5; font-size: 18px; flex-shrink: 0; }
+.table-row.sel .row-title { color: var(--accent); }
+.table-row.sel .row-chev  { color: var(--accent); }
+.table-row.sel .row-icon  { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ─── FILTERS ────────────────────────────────────────────── */
+.filters-inline {
+  margin: 0 20px;
+  overflow: hidden; max-height: 0; opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.22s ease;
+  background: var(--card);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  border-top: 1px solid var(--sep-lt);
+}
+.filters-inline.open { max-height: 300px; opacity: 1; }
+.fi-inner { padding: 14px 16px; }
+
+.fi-label {
+  font-size: 11px; font-weight: 600; color: var(--accent);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  margin-bottom: 8px; display: block;
+}
+.chip-row { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
+.chip {
+  padding: 6px 14px; border-radius: 100px;
+  background: var(--bg); border: 1px solid var(--sep);
+  font-size: 13px; font-weight: 500; color: var(--ink3);
+  cursor: pointer; transition: all 0.15s; font-family: var(--ui);
+}
+.chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.chip:active { opacity: 0.7; }
+
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 0; border-top: 1px solid var(--sep-lt); gap: 12px;
+}
+.toggle-info { flex: 1; }
+.toggle-title { font-size: 15px; font-weight: 600; color: var(--ink); }
+.toggle-sub   { font-size: 12px; color: var(--ink3); margin-top: 1px; }
+.ios-toggle {
+  width: 51px; height: 31px; border-radius: 16px;
+  background: var(--sep); position: relative; cursor: pointer;
+  transition: background 0.22s; flex-shrink: 0;
+}
+.ios-toggle.on { background: var(--accent); }
+.ios-toggle::after {
+  content: ''; position: absolute;
+  width: 27px; height: 27px; border-radius: 50%;
+  background: white; top: 2px; left: 2px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.18);
+  transition: transform 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+.ios-toggle.on::after { transform: translateX(20px); }
+
+/* ─── CTA ────────────────────────────────────────────────── */
+.cta-wrap {
+  padding: 0 20px;
+  overflow: hidden; max-height: 0; opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.25s ease, padding 0.3s ease;
+}
+.cta-wrap.open { max-height: 80px; opacity: 1; padding: 12px 20px 0; }
+.cta-btn {
+  width: 100%; background: var(--accent); border: none;
+  border-radius: var(--radius); padding: 16px 18px;
+  font-size: 16px; font-weight: 700; font-family: var(--ui);
+  color: white; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: opacity 0.15s; letter-spacing: -0.1px;
+}
+.cta-btn:active { opacity: 0.85; }
+.cta-tag {
+  font-size: 13px; font-weight: 500;
+  background: rgba(255,255,255,0.22); border-radius: 6px;
+  padding: 3px 9px;
+}
+
+/* ─── FEED ME ─────────────────────────────────────────────── */
+.feedme-card {
+  margin: 0 20px;
+  background: var(--ink);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex; flex-direction: column; gap: 14px;
+  position: relative; overflow: hidden;
+}
+.feedme-card::before {
+  content: '';
+  position: absolute; top: -30px; right: -30px;
+  width: 140px; height: 140px;
+  background: radial-gradient(circle, rgba(212,84,26,0.3) 0%, transparent 70%);
+  pointer-events: none;
+}
+.fm-eyebrow {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--accent); margin-bottom: 4px;
+}
+.fm-title {
+  font-family: var(--display);
+  font-size: 28px; font-weight: 400; font-style: italic;
+  color: #fff; line-height: 1.0;
+}
+.fm-sub { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 5px; line-height: 1.5; font-weight: 400; }
+.fm-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.fm-dice { font-size: 30px; }
+.dist-seg {
+  background: rgba(255,255,255,0.1);
+  border-radius: 9px; padding: 2px; display: flex;
+}
+.dist-btn {
+  flex: 1; text-align: center;
+  padding: 7px 0; border-radius: 7px;
+  font-size: 13px; font-weight: 500;
+  color: rgba(255,255,255,0.45); cursor: pointer;
+  transition: all 0.2s; font-family: var(--ui);
+}
+.dist-btn.active {
+  background: var(--accent); color: #fff;
+  box-shadow: 0 1px 4px rgba(212,84,26,0.4);
+}
+.fm-btn {
+  width: 100%; background: var(--accent); color: white;
+  border: none; border-radius: var(--radius); padding: 14px;
+  font-size: 15px; font-weight: 700; font-family: var(--ui);
+  cursor: pointer; transition: opacity 0.15s;
+}
+.fm-btn:active { opacity: 0.8; }
+
+/* ─── TAB BAR ────────────────────────────────────────────── */
+.tab-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(242,242,247,0.92);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--sep-lt);
+  padding: 10px 0 24px; display: flex;
+}
+.tab {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 3px; cursor: pointer; padding: 2px 0;
+}
+.tab svg { width: 24px; height: 24px; fill: var(--ink3); }
+.tab.active svg { fill: var(--accent); }
+.tab-lbl { font-size: 10px; font-weight: 500; color: var(--ink3); font-family: var(--ui); }
+.tab.active .tab-lbl { color: var(--accent); }
+
+/* ─── RESULTS: NAV BAR ───────────────────────────────────── */
+.navbar {
+  background: var(--card);
+  border-bottom: 1px solid var(--sep-lt);
+  padding: 10px 16px 14px;
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.back-btn {
+  display: flex; align-items: center; gap: 3px;
+  color: var(--accent); font-size: 16px; font-weight: 500;
+  cursor: pointer; flex-shrink: 0;
+}
+.back-btn svg { width: 9px; height: 16px; }
+.nav-center { flex: 1; text-align: center; }
+.nav-title {
+  font-family: var(--display);
+  font-size: 18px; font-style: italic; font-weight: 400;
+  color: var(--ink); line-height: 1;
+}
+.nav-sub { font-size: 12px; color: var(--ink3); font-weight: 500; margin-top: 1px; }
+.refine-btn {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--accent-bg); border: 1px solid rgba(212,84,26,0.2);
+  border-radius: 100px; padding: 6px 12px;
+  font-size: 13px; font-weight: 600; color: var(--accent);
+  cursor: pointer; flex-shrink: 0;
+}
+.refine-btn svg { width: 13px; height: 13px; fill: var(--accent); }
+
+/* ─── RESULTS: CONTEXT STRIP ─────────────────────────────── */
+.context-strip {
+  background: var(--bg);
+  padding: 10px 20px;
+  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.ctx-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--card); border: 1px solid var(--sep-lt);
+  border-radius: 100px; padding: 4px 10px;
+  font-size: 12px; font-weight: 500; color: var(--ink3);
+}
+.ctx-pill.mood {
+  background: var(--accent-bg); border-color: rgba(212,84,26,0.25);
+  color: var(--accent); font-weight: 600;
+}
+
+/* ─── RESULTS: SORT ROW ──────────────────────────────────── */
+.sort-row {
+  padding: 0 20px 10px;
+  display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0;
+}
+.sort-lbl { font-size: 12px; color: var(--ink3); font-weight: 500; flex-shrink: 0; }
+.sort-btns { display: flex; gap: 6px; }
+.sort-btn {
+  padding: 5px 12px; border-radius: 100px;
+  border: 1px solid var(--sep);
+  font-size: 12px; font-weight: 600; color: var(--ink3);
+  cursor: pointer; transition: all 0.15s; font-family: var(--ui);
+  background: var(--card);
+}
+.sort-btn.active {
+  background: var(--ink); border-color: var(--ink); color: #fff;
+}
+
+/* ─── DETAIL BOTTOM SHEET ───────────────────────────────── */
+#detail-sheet {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  pointer-events: none;
+}
+#detail-sheet.open { pointer-events: all; }
+#detail-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0);
+  transition: background 0.3s ease;
+}
+#detail-sheet.open #detail-backdrop { background: rgba(0,0,0,0.45); }
+#detail-panel {
+  position: relative; z-index: 1;
+  background: var(--card);
+  border-radius: 20px 20px 0 0;
+  max-height: 88vh; overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+  -webkit-overflow-scrolling: touch;
+}
+#detail-sheet.open #detail-panel { transform: translateY(0); }
+.sheet-handle {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--sep); margin: 10px auto 0;
+}
+.sheet-photo {
+  width: 100%; height: 220px; object-fit: cover; display: block;
+  background: #e0e0e5;
+}
+.sheet-body { padding: 16px 20px 40px; }
+.sheet-name { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+.sheet-meta { font-size: 13px; color: var(--ink3); margin-top: 4px; }
+.sheet-address { font-size: 13px; color: var(--ink2); margin-top: 8px; }
+.sheet-actions {
+  display: flex; gap: 10px; margin: 16px 0;
+}
+.sheet-actions .act {
+  flex: 1; justify-content: center;
+  font-size: 13px; padding: 10px 8px;
+}
+.sheet-divider {
+  border: none; border-top: 1px solid var(--sep-lt);
+  margin: 16px 0;
+}
+.sheet-section-title {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink3); margin-bottom: 12px;
+}
+.sheet-review {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--sep-lt);
+}
+.sheet-review:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.sheet-review-author {
+  font-size: 13px; font-weight: 600; color: var(--ink2); margin-bottom: 4px;
+}
+.sheet-review-text {
+  font-size: 14px; line-height: 1.55; color: var(--ink);
+  font-style: italic;
+}
+.sheet-review-text::before { content: '\201C'; }
+.sheet-review-text::after  { content: '\201D'; }
+.sheet-loading {
+  text-align: center; padding: 24px; color: var(--ink3); font-size: 14px;
+}
+
+/* ─── RESULT COUNT ───────────────────────────────────────── */
+.result-count {
+  padding: 14px 0 10px;
+  font-size: 13px; color: var(--ink3); font-weight: 500;
+}
+.result-count strong { color: var(--ink); font-weight: 700; }
+
+/* ─── RESTAURANT CARD ────────────────────────────────────── */
+.r-card {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.r-photo {
+  width: 100%; height: 160px;
+  background: #e0e0e5;
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.r-rank {
+  position: absolute; top: 12px; left: 12px;
+  background: rgba(0,0,0,0.55); backdrop-filter: blur(8px);
+  border-radius: 100px; padding: 4px 10px;
+  font-size: 12px; font-weight: 700; color: #fff;
+  letter-spacing: 0.02em;
+}
+.r-badge {
+  position: absolute; top: 12px; right: 12px;
+  border-radius: 100px; padding: 4px 10px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.03em;
+}
+.badge-locals { background: var(--accent); color: #fff; }
+.badge-hidden { background: rgba(0,0,0,0.55); backdrop-filter: blur(8px); color: #fff; }
+
+.r-body { padding: 14px 16px 0; }
+.r-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.r-name { font-size: 17px; font-weight: 700; color: var(--ink); letter-spacing: -0.2px; }
+.r-price-type { font-size: 13px; color: var(--ink3); font-weight: 500; margin-top: 2px; }
+.r-distance {
+  font-size: 12px; font-weight: 600; color: var(--ink3);
+  background: var(--bg); border-radius: 8px; padding: 4px 9px;
+  flex-shrink: 0; margin-top: 1px;
+}
+.r-blurb {
+  margin: 10px 0;
+  font-size: 13px; line-height: 1.55; color: var(--ink2); font-weight: 400;
+}
+.r-quote {
+  font-size: 13px; line-height: 1.5; color: var(--ink3);
+  border-left: 2px solid var(--accent); padding-left: 10px;
+  margin: 8px 0 12px; font-style: italic;
+}
+.r-quote-src { font-size: 11px; color: var(--ink3); font-weight: 600; font-style: normal; margin-top: 3px; display: block; }
+
+/* ─── ACTION PILLS ───────────────────────────────────────── */
+.r-actions {
+  border-top: 1px solid var(--sep-lt);
+  display: flex; gap: 7px;
+  padding: 11px 14px 13px;
+  overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.r-actions::-webkit-scrollbar { display: none; }
+.act {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 8px 14px; border-radius: 20px;
+  border: 1.5px solid var(--sep); background: var(--card);
+  font-size: 12px; font-weight: 600; color: var(--ink3);
+  font-family: var(--ui);
+  cursor: pointer; white-space: nowrap; transition: opacity 0.12s; flex-shrink: 0;
+  text-decoration: none;
+}
+.act:active { opacity: 0.7; }
+.act svg { width: 13px; height: 13px; fill: var(--ink3); flex-shrink: 0; }
+.act.reserve  { background: #1a5c1a; border-color: #1a5c1a; color: #fff; }
+.act.reserve svg { fill: #fff; }
+.act.opentable{ background: #cc2200; border-color: #cc2200; color: #fff; }
+.act.opentable svg { fill: #fff; }
+.act.resy-pill{ background: #e8420a; border-color: #e8420a; color: #fff; }
+.act.resy-pill svg { fill: #fff; }
+.act.doordash { background: #ff3008; border-color: #ff3008; color: #fff; }
+.act.doordash svg { fill: #fff; }
+.act.call     { border-color: var(--green); color: var(--green); }
+.act.call svg { fill: var(--green); }
+.act.dim      { opacity: 0.28; pointer-events: none; }
+
+/* ─── NUDGE BANNER ───────────────────────────────────────── */
+.chain-nudge {
+  background: var(--accent-bg);
+  border: 1px solid rgba(212,84,26,0.18);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px;
+}
+.nudge-icon { font-size: 20px; flex-shrink: 0; }
+.nudge-text { font-size: 13px; color: var(--accent); font-weight: 500; line-height: 1.45; }
+.nudge-text strong { font-weight: 700; }
+
+/* ─── LIST END ───────────────────────────────────────────── */
+.list-end {
+  text-align: center; padding: 20px 0 4px;
+  font-size: 13px; color: var(--ink3); font-weight: 500;
+}
+.list-end span { color: var(--accent); font-weight: 600; }
+
+@media (max-width: 430px) {
+  body { padding: 0; background: var(--bg); }
+  .shell { border-radius: 0; box-shadow: none; width: 100%; height: 100vh; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ════════════════════════════════════════════════════════
+     PAGE 1 — HOME
+═══════════════════════════════════════════════════════════ -->
+<div class="page active" id="page-home">
+
+  <div class="statusbar">
+    <span class="st-time" id="home-time">9:41</span>
+    <div class="st-icons">
+      <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+    </div>
+  </div>
+
+  <div class="large-title-bar">
+    <div class="app-name">nomm<em>.</em></div>
+    <div class="loc-pill"><span class="loc-dot"></span> Augusta, GA</div>
+  </div>
+
+  <div class="seg-wrap">
+    <div class="seg">
+      <div class="seg-btn active" onclick="setMode(this)">🍽 Food</div>
+      <div class="seg-btn" onclick="setMode(this)">🍹 Drinks</div>
+    </div>
+  </div>
+
+  <div class="scroll">
+
+    <div class="search-wrap">
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <input type="text" id="quickInput" placeholder="Dish, cuisine, or a specific spot…" />
+      </div>
+    </div>
+
+    <div class="sec-hdr">What's the vibe?</div>
+
+    <div class="table-card" id="moodTable">
+      <div class="table-row" onclick="selectMood(this,'comfort','🫶')">
+        <div class="row-icon ic-comfort">🫶</div>
+        <div class="row-body">
+          <div class="row-title">Comfort</div>
+          <div class="row-sub">Familiar, feel-good, easy</div>
+        </div>
+        <span class="row-chev">›</span>
+      </div>
+      <div class="table-row" onclick="selectMood(this,'adventure','🌏')">
+        <div class="row-icon ic-adventure">🌏</div>
+        <div class="row-body">
+          <div class="row-title">Adventure</div>
+          <div class="row-sub">Something new, unexpected</div>
+        </div>
+        <span class="row-chev">›</span>
+      </div>
+      <div class="table-row" onclick="selectMood(this,'fancy','🕯️')">
+        <div class="row-icon ic-fancy">🕯️</div>
+        <div class="row-body">
+          <div class="row-title">Fancy</div>
+          <div class="row-sub">Special occasion energy</div>
+        </div>
+        <span class="row-chev">›</span>
+      </div>
+      <div class="table-row" onclick="selectMood(this,'quick','⚡')">
+        <div class="row-icon ic-quick">⚡</div>
+        <div class="row-body">
+          <div class="row-title">Quick</div>
+          <div class="row-sub">Fast and good, no wait</div>
+        </div>
+        <span class="row-chev">›</span>
+      </div>
+      <div class="table-row" onclick="selectMood(this,'social','🥂')">
+        <div class="row-icon ic-social">🥂</div>
+        <div class="row-body">
+          <div class="row-title">Social</div>
+          <div class="row-sub">Group dinner, bar vibes, a scene</div>
+        </div>
+        <span class="row-chev">›</span>
+      </div>
+    </div>
+
+    <div class="filters-inline" id="filtersInline">
+      <div class="fi-inner">
+        <span class="fi-label">Budget</span>
+        <div class="chip-row" id="budgetChips">
+          <div class="chip" onclick="pickOne(this,'budget')">$</div>
+          <div class="chip active" onclick="pickOne(this,'budget')">$$</div>
+          <div class="chip" onclick="pickOne(this,'budget')">$$$</div>
+        </div>
+
+        <span class="fi-label">Cuisine — optional</span>
+        <div class="chip-row" id="cuisineChips" style="margin-bottom:10px;">
+          <div class="chip active" onclick="pickCuisine(this)">Any</div>
+          <div class="chip" onclick="pickCuisine(this)">Pizza</div>
+          <div class="chip" onclick="pickCuisine(this)">BBQ</div>
+          <div class="chip" onclick="pickCuisine(this)">Sushi</div>
+          <div class="chip" onclick="pickCuisine(this)">Mexican</div>
+          <div class="chip" onclick="pickCuisine(this)">Burgers</div>
+          <div class="chip" onclick="pickCuisine(this)">Southern</div>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-title">Local spots only</div>
+            <div class="toggle-sub">National chains hidden by default</div>
+          </div>
+          <div class="ios-toggle on" id="localToggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-wrap" id="ctaWrap">
+      <button class="cta-btn" onclick="goResults()">
+        Find My Spot
+        <span class="cta-tag" id="ctaTag">Comfort 🫶</span>
+      </button>
+    </div>
+
+    <div class="sec-hdr" style="padding-top:26px;">Can't decide?</div>
+
+    <div class="feedme-card">
+      <div class="fm-header">
+        <div>
+          <div class="fm-eyebrow">Just pick for me</div>
+          <div class="fm-title">Feed Me.</div>
+          <div class="fm-sub">Pick a radius. We'll find the best local spot right now.</div>
+        </div>
+        <span class="fm-dice">🎲</span>
+      </div>
+      <div class="dist-seg">
+        <div class="dist-btn active" onclick="pickDist(this)">5 min</div>
+        <div class="dist-btn" onclick="pickDist(this)">15 min</div>
+        <div class="dist-btn" onclick="pickDist(this)">30 min</div>
+      </div>
+      <button class="fm-btn" onclick="goFeedMe()">Feed Me →</button>
+    </div>
+
+    <div style="height:10px;"></div>
+  </div><!-- /scroll -->
+
+  <nav class="tab-bar">
+    <div class="tab active">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span class="tab-lbl">Discover</span>
+    </div>
+    <div class="tab">
+      <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+      <span class="tab-lbl">Map</span>
+    </div>
+    <div class="tab">
+      <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      <span class="tab-lbl">Saved</span>
+    </div>
+    <div class="tab">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <span class="tab-lbl">Profile</span>
+    </div>
+  </nav>
+
+</div><!-- /page-home -->
+
+
+<!-- ════════════════════════════════════════════════════════
+     PAGE 2 — RESULTS
+═══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-results">
+
+  <div class="statusbar" style="background:var(--card);">
+    <span class="st-time" id="results-time">9:41</span>
+    <div class="st-icons">
+      <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+    </div>
+  </div>
+
+  <div class="navbar">
+    <div class="back-btn" onclick="goBack()">
+      <svg viewBox="0 0 9 16" fill="none"><path d="M8 1L1 8l7 7" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Back
+    </div>
+    <div class="nav-center">
+      <div class="nav-title" id="results-nav-title">Comfort</div>
+      <div class="nav-sub">Augusta, GA · Local only</div>
+    </div>
+    <div class="refine-btn">
+      <svg viewBox="0 0 24 24"><path d="M4.25 5.61C6.27 8.2 10 13 10 13v6c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-6s3.72-4.8 5.74-7.39A.998.998 0 0 0 18.95 4H5.04a1 1 0 0 0-.79 1.61z"/></svg>
+      Refine
+    </div>
+  </div>
+
+  <div class="context-strip" id="results-context-strip">
+    <div class="ctx-pill mood" id="results-mood-pill">🫶 Comfort</div>
+    <div class="ctx-pill" id="results-budget-pill">$$</div>
+    <div class="ctx-pill">Any cuisine</div>
+    <div class="ctx-pill">Local only</div>
+  </div>
+
+  <div class="sort-row">
+    <span class="sort-lbl">Sort:</span>
+    <div class="sort-btns">
+      <div class="sort-btn active" onclick="pickSort(this)">Best match</div>
+      <div class="sort-btn" onclick="pickSort(this)">Closest</div>
+    </div>
+  </div>
+
+  <div class="scroll" style="padding: 0 20px 90px;">
+    <div class="result-count"><strong>6 spots</strong> near you</div>
+
+    <div class="chain-nudge">
+      <span class="nudge-icon">🏘️</span>
+      <div class="nudge-text"><strong>Local only is on.</strong> Showing independent and regional spots — no national chains.</div>
+    </div>
+
+    <div id="results-list">
+      <!-- Loading skeleton shown while API fetches -->
+      <div class="r-card skeleton-card" id="skel1">
+        <div class="r-photo skel-photo"></div>
+        <div class="r-body" style="padding:14px;">
+          <div class="skel-line" style="width:60%;height:16px;margin-bottom:8px;"></div>
+          <div class="skel-line" style="width:40%;height:12px;margin-bottom:12px;"></div>
+          <div class="skel-line" style="width:90%;height:11px;margin-bottom:6px;"></div>
+          <div class="skel-line" style="width:75%;height:11px;"></div>
+        </div>
+      </div>
+      <div class="r-card skeleton-card" id="skel2">
+        <div class="r-photo skel-photo"></div>
+        <div class="r-body" style="padding:14px;">
+          <div class="skel-line" style="width:55%;height:16px;margin-bottom:8px;"></div>
+          <div class="skel-line" style="width:35%;height:12px;margin-bottom:12px;"></div>
+          <div class="skel-line" style="width:85%;height:11px;margin-bottom:6px;"></div>
+          <div class="skel-line" style="width:70%;height:11px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="list-end" id="results-end" style="display:none;">That's everything that matched. <span>Try widening your distance?</span></div>
+  </div><!-- /scroll -->
+
+  <nav class="tab-bar">
+    <div class="tab active">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span class="tab-lbl">Discover</span>
+    </div>
+    <div class="tab">
+      <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+      <span class="tab-lbl">Map</span>
+    </div>
+    <div class="tab">
+      <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      <span class="tab-lbl">Saved</span>
+    </div>
+    <div class="tab">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <span class="tab-lbl">Profile</span>
+    </div>
+  </nav>
+
+</div><!-- /page-results -->
+
+</div><!-- /shell -->
+
+<script>
+/* ─── STATE ─────────────────────────────────────────────── */
+const state = {
+  mood: null,
+  moodEmoji: '',
+  budget: '$$',
+  cuisine: 'Any',
+  localOnly: true,
+};
+
+/* ─── CLOCK ─────────────────────────────────────────────── */
+function tick() {
+  const now = new Date();
+  const h = now.getHours() % 12 || 12;
+  const m = String(now.getMinutes()).padStart(2, '0');
+  const t = `${h}:${m}`;
+  document.getElementById('home-time').textContent = t;
+  document.getElementById('results-time').textContent = t;
+}
+tick();
+setInterval(tick, 15000);
+
+/* ─── NAVIGATION ─────────────────────────────────────────── */
+function navigate(to) {
+  const home    = document.getElementById('page-home');
+  const results = document.getElementById('page-results');
+
+  if (to === 'results') {
+    home.classList.add('exit-left');
+    results.classList.add('active');
+    // update results header from state
+    const moodLabel = (state.mood && moodLabels[state.mood])
+      ? moodLabels[state.mood]
+      : (state.mood ? state.mood.charAt(0).toUpperCase() + state.mood.slice(1) : 'Results');
+    document.getElementById('results-nav-title').textContent = moodLabel;
+    document.getElementById('results-mood-pill').textContent = `${state.moodEmoji} ${moodLabel}`;
+    document.getElementById('results-budget-pill').textContent = state.budget;
+    // scroll results to top
+    results.querySelector('.scroll').scrollTop = 0;
+    // fetch real places
+    if (typeof loadResults === 'function') loadResults();
+  }
+}
+
+function goBack() {
+  const home    = document.getElementById('page-home');
+  const results = document.getElementById('page-results');
+  results.classList.remove('active');
+  home.classList.remove('exit-left');
+}
+
+/* ─── HOME INTERACTIONS ──────────────────────────────────── */
+const moodLabels = {
+  comfort:'Comfort', adventure:'Adventure',
+  fancy:'Fancy', quick:'Quick', social:'Social',
+  feed:'Feed me', search:'Search'
+};
+const moodEmojis = {
+  comfort:'🫶', adventure:'🌏', fancy:'🕯️', quick:'⚡', social:'🥂'
+};
+
+function selectMood(el, mood, emoji) {
+  document.querySelectorAll('.table-row').forEach(r => r.classList.remove('sel'));
+  el.classList.add('sel');
+  state.mood = mood;
+  state.moodEmoji = emoji;
+  document.getElementById('ctaTag').textContent = `${moodLabels[mood]} ${emoji}`;
+  document.getElementById('moodTable').style.borderRadius = '16px 16px 0 0';
+  document.getElementById('filtersInline').classList.add('open');
+  document.getElementById('ctaWrap').classList.add('open');
+}
+
+function pickOne(el, group) {
+  el.parentNode.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  if (group === 'budget') state.budget = el.textContent.trim();
+}
+
+function pickCuisine(el) {
+  if (el.textContent === 'Any') {
+    el.parentNode.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    state.cuisine = 'Any';
+  } else {
+    el.parentNode.querySelector('.chip').classList.remove('active'); // deselect Any
+    el.classList.toggle('active');
+    state.cuisine = el.textContent;
+  }
+}
+
+function pickDist(el) {
+  document.querySelectorAll('.dist-btn').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function setMode(btn) {
+  document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function goResults() {
+  if (!state.mood) {
+    // pulse the mood section to prompt selection
+    const tbl = document.getElementById('moodTable');
+    tbl.style.outline = '2px solid var(--accent)';
+    setTimeout(() => tbl.style.outline = '', 800);
+    return;
+  }
+  navigate('results');
+}
+
+function goFeedMe() {
+  // treat Feed Me as a random mood pick for now
+  const moods = Object.keys(moodLabels);
+  const pick = moods[Math.floor(Math.random() * moods.length)];
+  state.mood = pick;
+  state.moodEmoji = moodEmojis[pick];
+  navigate('results');
+}
+
+/* ─── RESULTS INTERACTIONS ───────────────────────────────── */
+function pickSort(btn) {
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+/* ─── UTILITY ────────────────────────────────────────────── */
+function openUrl(url) {
+  window.open(url, '_blank', 'noopener');
+}
+
+/* ─── SEARCH ─────────────────────────────────────────────── */
+document.getElementById('quickInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.value.trim()) {
+    state.mood = 'search';
+    state.moodEmoji = '🔍';
+    navigate('results');
+    e.target.blur();
+  }
+});
+</script>
+
+<!-- ─── GOOGLE PLACES API ──────────────────────────────────── -->
+<script>
+const PLACES_KEY = 'AIzaSyA3Uvt9HcTG5-gaI9KA-LpZ5Hvqsv9-8B0';
+
+// Mood → keyword mapping for Places search
+const moodKeywords = {
+  comfort:   'comfort food restaurant',
+  adventure: 'unique restaurant',
+  fancy:     'fine dining restaurant',
+  quick:     'fast casual restaurant',
+  social:    'bar restaurant lively',
+  search:    'restaurant'
+};
+
+// Price level → $ symbols
+function priceSymbol(level) {
+  return level ? '$'.repeat(level) : '$$';
+}
+
+// Meters to miles
+function toMiles(meters) {
+  return (meters / 1609.34).toFixed(1);
+}
+
+// Card colors by index
+const cardGradients = [
+  'linear-gradient(135deg,#2d1a0e 0%,#6b3a1f 100%)',
+  'linear-gradient(135deg,#0d2137 0%,#1a4a6b 100%)',
+  'linear-gradient(135deg,#1a1008 0%,#4a2c10 100%)',
+  'linear-gradient(135deg,#0f1f0f 0%,#1e4a1e 100%)',
+  'linear-gradient(135deg,#1f0d2d 0%,#4a1a6b 100%)',
+];
+const cardEmojis = ['🍽️','🥢','🍕','🥩','🍜','🍔','🌮','🍣'];
+
+function buildCard(place, index, userLat, userLng) {
+  const name       = place.name || 'Restaurant';
+  const price      = priceSymbol(place.price_level);
+  const types      = (place.types || [])
+    .filter(t => !['restaurant','food','point_of_interest','establishment'].includes(t))
+    .map(t => t.replace(/_/g,' '))
+    .slice(0,1)
+    .map(t => t.charAt(0).toUpperCase() + t.slice(1))
+    .join('');
+  const phone      = place.formatted_phone_number || '';
+  const website    = place.website || '';
+  const mapsUrl    = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${place.place_id}`;
+  const ddUrl      = `https://www.doordash.com/search/store/${encodeURIComponent(name.toLowerCase().replace(/\s+/g,'-'))}`;
+  const gradient   = cardGradients[index % cardGradients.length];
+  const emoji      = cardEmojis[index % cardEmojis.length];
+  const rankLabel  = `#${index + 1}`;
+  const openBadge  = '';
+
+  // Real photo from Places API
+  const photoUrl = (place.photos && place.photos.length > 0)
+    ? place.photos[0].getUrl({ maxWidth: 800, maxHeight: 400 })
+    : null;
+
+  // Distance (if geometry available)
+  let distHtml = '';
+  if (place.geometry?.location && userLat && userLng) {
+    const R = 6371000;
+    const dLat = (place.geometry.location.lat() - userLat) * Math.PI / 180;
+    const dLng = (place.geometry.location.lng() - userLng) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(userLat*Math.PI/180)*Math.cos(place.geometry.location.lat()*Math.PI/180)*Math.sin(dLng/2)**2;
+    const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    distHtml = `<div class="r-distance">${toMiles(dist)} mi</div>`;
+  }
+
+  const callBtn = phone
+    ? `<a class="act call" href="tel:${phone}">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+        Call
+       </a>`
+    : `<div class="act dim"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>Call</div>`;
+
+  return `
+    <div class="r-card" onclick="openDetail('${place.place_id}')" style="cursor:pointer;">
+      <div class="r-photo" style="background:${gradient}; position:relative;">
+        ${photoUrl
+          ? `<img src="${photoUrl}" alt="${name}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none'">`
+          : `<span style="font-size:52px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">${emoji}</span>`
+        }
+        <div class="r-rank">${rankLabel}</div>
+        ${openBadge}
+      </div>
+      <div class="r-body">
+        <div class="r-top">
+          <div>
+            <div class="r-name">${name}</div>
+            <div class="r-price-type">${price}${types ? ' · '+types : ''}</div>
+          </div>
+          ${distHtml}
+        </div>
+        <div class="r-blurb">${place.vicinity || place.formatted_address || ''}</div>
+      </div>
+      <div class="r-actions" onclick="event.stopPropagation()">
+        ${callBtn}
+        <div class="act doordash" onclick="openUrl('${ddUrl}')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+          DoorDash
+        </div>
+        <div class="act" onclick="openUrl('${mapsUrl}')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+          Directions
+        </div>
+        <div class="act dim">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>
+          Reserve
+        </div>
+      </div>
+    </div>`;
+}
+
+function showError(msg) {
+  document.getElementById('results-list').innerHTML = `
+    <div style="text-align:center;padding:48px 24px;color:var(--ink3);">
+      <div style="font-size:36px;margin-bottom:12px;">📍</div>
+      <div style="font-weight:600;color:var(--ink2);margin-bottom:6px;">Couldn't load spots</div>
+      <div style="font-size:14px;">${msg}</div>
+    </div>`;
+  document.getElementById('results-end').style.display = 'none';
+}
+
+/* ─── DETAIL SHEET ───────────────────────────────────────── */
+function openDetail(placeId) {
+  const sheet = document.getElementById('detail-sheet');
+  sheet.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Reset
+  document.getElementById('sheet-photo').style.display = 'none';
+  document.getElementById('sheet-name').textContent = '';
+  document.getElementById('sheet-meta').textContent = '';
+  document.getElementById('sheet-address').textContent = '';
+  document.getElementById('sheet-actions').innerHTML = '';
+  document.getElementById('sheet-reviews').innerHTML = '<div class="sheet-loading">Loading reviews…</div>';
+
+  // Fetch full place details including reviews
+  placesService.getDetails({
+    placeId: placeId,
+    fields: ['name','formatted_address','formatted_phone_number','website',
+             'opening_hours','price_level','types','photos','reviews','url']
+  }, (place, status) => {
+    if (status !== google.maps.places.PlacesServiceStatus.OK || !place) {
+      document.getElementById('sheet-reviews').innerHTML = '<div class="sheet-loading">Couldn\'t load details.</div>';
+      return;
+    }
+
+    // Photo
+    const photoEl = document.getElementById('sheet-photo');
+    if (place.photos && place.photos.length > 0) {
+      photoEl.src = place.photos[0].getUrl({ maxWidth: 900, maxHeight: 500 });
+      photoEl.style.display = 'block';
+    }
+
+    // Name & meta
+    const price = priceSymbol(place.price_level);
+    const types = (place.types || [])
+      .filter(t => !['restaurant','food','point_of_interest','establishment'].includes(t))
+      .map(t => t.replace(/_/g,' '))
+      .slice(0,1)
+      .map(t => t.charAt(0).toUpperCase() + t.slice(1))
+      .join('');
+    document.getElementById('sheet-name').textContent = place.name;
+    document.getElementById('sheet-meta').textContent = [price, types].filter(Boolean).join(' · ');
+    document.getElementById('sheet-address').textContent = place.formatted_address || '';
+
+    // Action buttons
+    const phone = place.formatted_phone_number || '';
+    const mapsUrl = place.url || `https://www.google.com/maps/search/?api=1&query_place_id=${placeId}`;
+    const ddUrl = `https://www.doordash.com/search/store/${encodeURIComponent((place.name||'').toLowerCase().replace(/\s+/g,'-'))}`;
+    document.getElementById('sheet-actions').innerHTML = `
+      ${phone ? `<a class="act call" href="tel:${phone}" style="text-decoration:none;">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+        Call</a>` : ''}
+      <div class="act doordash" onclick="openUrl('${ddUrl}')">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+        DoorDash</div>
+      <div class="act" onclick="openUrl('${mapsUrl}')">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        Directions</div>
+    `;
+
+    // Reviews
+    const reviews = place.reviews || [];
+    if (reviews.length === 0) {
+      document.getElementById('sheet-reviews').innerHTML = '<div class="sheet-loading">No reviews yet.</div>';
+    } else {
+      document.getElementById('sheet-reviews').innerHTML = reviews.slice(0, 5).map(r => `
+        <div class="sheet-review">
+          <div class="sheet-review-author">${r.author_name}</div>
+          <div class="sheet-review-text">${r.text}</div>
+        </div>
+      `).join('');
+    }
+  });
+}
+
+function closeDetail() {
+  document.getElementById('detail-sheet').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+let placesService = null;
+
+function initPlaces() {
+  // Create an invisible map div to satisfy PlacesService requirement
+  const mapDiv = document.createElement('div');
+  const map = new google.maps.Map(mapDiv, { center: { lat: 33.4735, lng: -82.0105 }, zoom: 13 });
+  placesService = new google.maps.places.PlacesService(map);
+}
+
+function fetchPlaces(lat, lng) {
+  if (!placesService) initPlaces();
+
+  const keyword = moodKeywords[state.mood] || 'restaurant';
+  const budgetMap = { '$': 1, '$$': 2, '$$$': 3 };
+  const maxPrice = budgetMap[state.budget] || 2;
+
+  const request = {
+    location: new google.maps.LatLng(lat, lng),
+    radius: 4000, // ~2.5 miles
+    type: 'restaurant',
+    keyword: keyword,
+    maxPriceLevel: maxPrice,
+    openNow: true,
+  };
+
+  placesService.nearbySearch(request, (results, status) => {
+    if (status !== google.maps.places.PlacesServiceStatus.OK || !results.length) {
+      showError('No spots found nearby. Try a different mood or budget.');
+      return;
+    }
+
+    // Filter to open places only, then take top 6
+    const open = results.filter(p => p.opening_hours?.open_now !== false);
+    const top = (open.length > 0 ? open : results).slice(0, 6);
+    document.getElementById('results-list').innerHTML = top
+      .map((p, i) => buildCard(p, i, lat, lng))
+      .join('');
+
+    document.querySelector('#page-results .result-count strong').textContent = `${top.length} spots`;
+    document.getElementById('results-end').style.display = 'block';
+  });
+}
+
+function loadResults() {
+  // Reset to skeletons
+  document.getElementById('results-list').innerHTML = `
+    <div class="r-card skeleton-card">
+      <div class="r-photo skel-photo"></div>
+      <div class="r-body" style="padding:14px;">
+        <div class="skel-line" style="width:60%;height:16px;margin-bottom:8px;"></div>
+        <div class="skel-line" style="width:40%;height:12px;margin-bottom:12px;"></div>
+        <div class="skel-line" style="width:90%;height:11px;margin-bottom:6px;"></div>
+        <div class="skel-line" style="width:75%;height:11px;"></div>
+      </div>
+    </div>
+    <div class="r-card skeleton-card">
+      <div class="r-photo skel-photo"></div>
+      <div class="r-body" style="padding:14px;">
+        <div class="skel-line" style="width:55%;height:16px;margin-bottom:8px;"></div>
+        <div class="skel-line" style="width:35%;height:12px;margin-bottom:12px;"></div>
+        <div class="skel-line" style="width:85%;height:11px;margin-bottom:6px;"></div>
+        <div class="skel-line" style="width:70%;height:11px;"></div>
+      </div>
+    </div>`;
+  document.getElementById('results-end').style.display = 'none';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => fetchPlaces(pos.coords.latitude, pos.coords.longitude),
+      ()  => {
+        // Fallback to Augusta downtown coords if user denies location
+        fetchPlaces(33.4735, -82.0105);
+      },
+      { timeout: 5000 }
+    );
+  } else {
+    fetchPlaces(33.4735, -82.0105);
+  }
+}
+</script>
+
+<!-- ─── DETAIL BOTTOM SHEET ─────────────────────────────── -->
+<div id="detail-sheet">
+  <div id="detail-backdrop" onclick="closeDetail()"></div>
+  <div id="detail-panel">
+    <div class="sheet-handle"></div>
+    <img id="sheet-photo" class="sheet-photo" src="" alt="" style="display:none;">
+    <div class="sheet-body">
+      <div id="sheet-name" class="sheet-name"></div>
+      <div id="sheet-meta" class="sheet-meta"></div>
+      <div id="sheet-address" class="sheet-address"></div>
+      <div class="sheet-actions" id="sheet-actions"></div>
+      <hr class="sheet-divider">
+      <div class="sheet-section-title">What people are saying</div>
+      <div id="sheet-reviews"><div class="sheet-loading">Loading reviews…</div></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA3Uvt9HcTG5-gaI9KA-LpZ5Hvqsv9-8B0&libraries=places&callback=initPlaces" async defer></script>
+</body>
+</html>
