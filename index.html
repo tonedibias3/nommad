@@ -776,9 +776,9 @@ body {
 
   <div class="context-strip" id="results-context-strip">
     <div class="ctx-pill mood" id="results-mood-pill">🫶 Comfort</div>
-    <div class="ctx-pill" id="results-budget-pill">$$</div>
-    <div class="ctx-pill">Any cuisine</div>
-    <div class="ctx-pill">Local only</div>
+    <div class="ctx-pill" id="results-budget-pill" onclick="cycleBudget()" style="cursor:pointer" title="Tap to change budget">$$</div>
+    <div class="ctx-pill" id="results-cuisine-pill" onclick="openCuisineFilter()" style="cursor:pointer" title="Tap to filter by cuisine">Any cuisine</div>
+    <div class="ctx-pill" id="results-localonly-pill" onclick="toggleLocalOnly()" style="cursor:pointer" title="Toggle local-only">Local only</div>
   </div>
 
   <div class="sort-row">
@@ -849,9 +849,9 @@ body {
 const state = {
   mood: null,
   moodEmoji: '',
-  budget: '$$',
-  cuisine: 'Any',
-  localOnly: true,
+  budget: 'Any',
+  cuisine: 'Any cuisine',
+  localOnly: false,
 };
 
 /* ─── CLOCK ─────────────────────────────────────────────── */
@@ -880,7 +880,18 @@ function navigate(to) {
       : (state.mood ? state.mood.charAt(0).toUpperCase() + state.mood.slice(1) : 'Results');
     document.getElementById('results-nav-title').textContent = moodLabel;
     document.getElementById('results-mood-pill').textContent = `${state.moodEmoji} ${moodLabel}`;
-    document.getElementById('results-budget-pill').textContent = state.budget;
+    // Reset filter pills to default state
+    state.budget = 'Any';
+    state.cuisine = 'Any cuisine';
+    localOnlyActive = false;
+    const bpill = document.getElementById('results-budget-pill');
+    bpill.textContent = 'Any budget';
+    bpill.style.color = ''; bpill.style.fontWeight = '500'; bpill.style.borderColor = '';
+    const cpill = document.getElementById('results-cuisine-pill');
+    cpill.textContent = 'Any cuisine';
+    cpill.style.color = ''; cpill.style.fontWeight = '500'; cpill.style.borderColor = '';
+    const lpill = document.getElementById('results-localonly-pill');
+    lpill.style.background = ''; lpill.style.color = ''; lpill.style.fontWeight = '500'; lpill.style.borderColor = '';
     // scroll results to top
     results.querySelector('.scroll').scrollTop = 0;
     // fetch real places
@@ -965,9 +976,99 @@ function goFeedMe() {
 }
 
 /* ─── RESULTS INTERACTIONS ───────────────────────────────── */
+let allResults = []; // store all fetched results for re-sorting
+let userLat = null, userLng = null; // store user coords globally
+
 function pickSort(btn) {
   document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  const mode = btn.textContent.trim();
+  if (!allResults.length) return;
+  let sorted = [...allResults];
+  if (mode === 'Closest' && userLat !== null) {
+    sorted.sort((a, b) => {
+      const distA = calcDist(a.geometry?.location?.lat(), a.geometry?.location?.lng(), userLat, userLng);
+      const distB = calcDist(b.geometry?.location?.lat(), b.geometry?.location?.lng(), userLat, userLng);
+      return distA - distB;
+    });
+  }
+  const top = sorted.slice(0, 6);
+  document.getElementById('results-list').innerHTML = top.map((p,i) => buildCard(p, i, userLat, userLng)).join('');
+}
+
+function calcDist(lat1, lng1, lat2, lng2) {
+  if (lat1==null||lng1==null||lat2==null||lng2==null) return 99999;
+  const R = 6371000;
+  const dLat = (lat1 - lat2) * Math.PI / 180;
+  const dLng = (lng1 - lng2) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat2*Math.PI/180)*Math.cos(lat1*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+/* ─── FILTER PILL INTERACTIONS ───────────────────────────── */
+const budgetCycle = ['Any', '$', '$$', '$$$', '$$$$'];
+let localOnlyActive = false;
+
+function cycleBudget() {
+  const pill = document.getElementById('results-budget-pill');
+  const cur = budgetCycle.indexOf(state.budget || 'Any');
+  const next = budgetCycle[(cur + 1) % budgetCycle.length];
+  state.budget = next;
+  pill.textContent = next === 'Any' ? 'Any budget' : next;
+  pill.style.fontWeight = next !== 'Any' ? '700' : '500';
+  pill.style.color = next !== 'Any' ? 'var(--accent)' : '';
+  pill.style.borderColor = next !== 'Any' ? 'rgba(212,84,26,0.4)' : '';
+  loadResults();
+}
+
+function toggleLocalOnly() {
+  localOnlyActive = !localOnlyActive;
+  const pill = document.getElementById('results-localonly-pill');
+  pill.style.background = localOnlyActive ? 'var(--accent-bg)' : '';
+  pill.style.color = localOnlyActive ? 'var(--accent)' : '';
+  pill.style.borderColor = localOnlyActive ? 'rgba(212,84,26,0.4)' : '';
+  pill.style.fontWeight = localOnlyActive ? '700' : '500';
+  // local-only is a UI hint — filtering handled server-side via keyword is hard;
+  // for now flag is stored for post-filter
+  loadResults();
+}
+
+function openCuisineFilter() {
+  const cuisines = ['Any cuisine','American','Italian','Mexican','Chinese','Japanese','Thai','Indian','Mediterranean','BBQ','Seafood','Pizza','Burgers','Sushi'];
+  const cur = state.cuisine || 'Any cuisine';
+  // Build a quick bottom sheet
+  let existing = document.getElementById('cuisine-picker-sheet');
+  if (existing) existing.remove();
+  const sheet = document.createElement('div');
+  sheet.id = 'cuisine-picker-sheet';
+  sheet.style.cssText = `position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;padding:20px;z-index:200;max-height:70%;overflow-y:auto;box-shadow:0 -4px 24px rgba(0,0,0,0.14);`;
+  sheet.innerHTML = `
+    <div style="width:36px;height:4px;background:#e5e5ea;border-radius:2px;margin:0 auto 16px;"></div>
+    <div style="font-size:16px;font-weight:700;margin-bottom:14px;color:#1c1c1e;">Filter by cuisine</div>
+    ${cuisines.map(c => `
+      <div onclick="pickCuisine('${c}')" style="padding:12px 0;border-bottom:1px solid #f2f2f7;font-size:15px;cursor:pointer;color:${c===cur?'var(--accent)':'#1c1c1e'};font-weight:${c===cur?'700':'400'}">
+        ${c === cur ? '✓ ' : ''}${c}
+      </div>`).join('')}
+  `;
+  document.querySelector('.shell').appendChild(sheet);
+  // tap outside closes
+  setTimeout(() => {
+    document.addEventListener('click', function closePicker(e) {
+      if (!sheet.contains(e.target)) { sheet.remove(); document.removeEventListener('click', closePicker); }
+    });
+  }, 100);
+}
+
+function pickCuisine(cuisine) {
+  state.cuisine = cuisine;
+  const pill = document.getElementById('results-cuisine-pill');
+  pill.textContent = cuisine;
+  const active = cuisine !== 'Any cuisine';
+  pill.style.color = active ? 'var(--accent)' : '';
+  pill.style.fontWeight = active ? '700' : '500';
+  pill.style.borderColor = active ? 'rgba(212,84,26,0.4)' : '';
+  document.getElementById('cuisine-picker-sheet')?.remove();
+  loadResults();
 }
 
 /* ─── UTILITY ────────────────────────────────────────────── */
@@ -994,7 +1095,7 @@ const PLACES_KEY = 'AIzaSyA3Uvt9HcTG5-gaI9KA-LpZ5Hvqsv9-8B0';
 const moodConfig = {
   comfort:   { keyword: 'comfort food soul food home cooking', minPrice: 0, maxPrice: 2 },
   adventure: { keyword: 'unique ethnic fusion international restaurant', minPrice: 1, maxPrice: 3 },
-  fancy:     { keyword: 'fine dining upscale steakhouse', minPrice: 3, maxPrice: 4 },
+  fancy:     { keyword: 'fine dining upscale steakhouse restaurant', minPrice: 2, maxPrice: 4 },
   quick:     { keyword: 'fast casual sandwich burrito bowl', minPrice: 0, maxPrice: 2 },
   social:    { keyword: 'bar gastropub lively happy hour', minPrice: 1, maxPrice: 3 },
   feed:      { keyword: 'restaurant', minPrice: 0, maxPrice: 4 },
@@ -1217,10 +1318,8 @@ function fetchPlaces(lat, lng) {
   if (!placesService) initPlaces();
 
   const config = moodConfig[state.mood] || { keyword: 'restaurant', minPrice: 0, maxPrice: 4 };
-  // For search mode, use the typed cuisine; otherwise use mood keyword
-  const cuisineOverride = (state.mood === 'search' && state.cuisine && state.cuisine !== 'Any cuisine')
-    ? state.cuisine
-    : null;
+  // Cuisine pill or search mode override
+  const cuisineOverride = (state.cuisine && state.cuisine !== 'Any cuisine') ? state.cuisine : null;
   const keyword = cuisineOverride ? `${cuisineOverride} restaurant` : config.keyword;
 
   // Budget pill overrides price range
@@ -1243,9 +1342,20 @@ function fetchPlaces(lat, lng) {
       return;
     }
 
-    // Filter to open places only, then take top 6
+    // Filter to open places only
     const open = results.filter(p => p.opening_hours?.open_now !== false);
-    const top = (open.length > 0 ? open : results).slice(0, 6);
+    // Filter out places more than 15 miles away (24140m) to prevent Google expanding radius
+    const nearby = (open.length > 0 ? open : results).filter(p => {
+      if (!p.geometry?.location) return true;
+      const d = calcDist(p.geometry.location.lat(), p.geometry.location.lng(), lat, lng);
+      return d <= 24140; // 15 miles
+    });
+    const pool = nearby.length > 0 ? nearby : (open.length > 0 ? open : results);
+    const top = pool.slice(0, 6);
+
+    // Store globally for re-sorting
+    allResults = pool;
+
     document.getElementById('results-list').innerHTML = top
       .map((p, i) => buildCard(p, i, lat, lng))
       .join('');
@@ -1280,15 +1390,23 @@ function loadResults() {
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-      pos => fetchPlaces(pos.coords.latitude, pos.coords.longitude),
+      pos => {
+        userLat = pos.coords.latitude;
+        userLng = pos.coords.longitude;
+        fetchPlaces(userLat, userLng);
+      },
       ()  => {
         // Fallback to Augusta downtown coords if user denies location
-        fetchPlaces(33.4735, -82.0105);
+        userLat = 33.4735;
+        userLng = -82.0105;
+        fetchPlaces(userLat, userLng);
       },
       { timeout: 5000 }
     );
   } else {
-    fetchPlaces(33.4735, -82.0105);
+    userLat = 33.4735;
+    userLng = -82.0105;
+    fetchPlaces(userLat, userLng);
   }
 }
 </script>
