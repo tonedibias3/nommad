@@ -990,15 +990,18 @@ document.getElementById('quickInput').addEventListener('keydown', e => {
 <script>
 const PLACES_KEY = 'AIzaSyA3Uvt9HcTG5-gaI9KA-LpZ5Hvqsv9-8B0';
 
-// Mood → keyword mapping for Places search
-const moodKeywords = {
-  comfort:   'comfort food restaurant',
-  adventure: 'unique restaurant',
-  fancy:     'fine dining restaurant',
-  quick:     'fast casual restaurant',
-  social:    'bar restaurant lively',
-  search:    'restaurant'
+// Mood → search config mapping
+const moodConfig = {
+  comfort:   { keyword: 'comfort food soul food home cooking', minPrice: 0, maxPrice: 2 },
+  adventure: { keyword: 'unique ethnic fusion international restaurant', minPrice: 1, maxPrice: 3 },
+  fancy:     { keyword: 'fine dining upscale steakhouse', minPrice: 3, maxPrice: 4 },
+  quick:     { keyword: 'fast casual sandwich burrito bowl', minPrice: 0, maxPrice: 2 },
+  social:    { keyword: 'bar gastropub lively happy hour', minPrice: 1, maxPrice: 3 },
+  feed:      { keyword: 'restaurant', minPrice: 0, maxPrice: 4 },
+  search:    { keyword: 'restaurant', minPrice: 0, maxPrice: 4 },
 };
+// Keep backward compat alias
+const moodKeywords = Object.fromEntries(Object.entries(moodConfig).map(([k,v]) => [k, typeof v === 'string' ? v : v.keyword]));
 
 // Price level → $ symbols
 function priceSymbol(level) {
@@ -1054,6 +1057,12 @@ function buildCard(place, index, userLat, userLng) {
     distHtml = `<div class="r-distance">${toMiles(dist)} mi</div>`;
   }
 
+  const menuUrl = website || `https://www.google.com/search?q=${encodeURIComponent(name + ' menu')}`;
+  const menuBtn = `<div class="act" onclick="event.stopPropagation();openUrl('${menuUrl}')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+    Menu
+  </div>`;
+
   const callBtn = phone
     ? `<a class="act call" href="tel:${phone}">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
@@ -1083,6 +1092,7 @@ function buildCard(place, index, userLat, userLng) {
       </div>
       <div class="r-actions" onclick="event.stopPropagation()">
         ${callBtn}
+        ${menuBtn}
         <div class="act doordash" onclick="openUrl('${ddUrl}')">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
           DoorDash
@@ -1155,12 +1165,17 @@ function openDetail(placeId) {
 
     // Action buttons
     const phone = place.formatted_phone_number || '';
+    const website = place.website || '';
     const mapsUrl = place.url || `https://www.google.com/maps/search/?api=1&query_place_id=${placeId}`;
     const ddUrl = `https://www.doordash.com/search/store/${encodeURIComponent((place.name||'').toLowerCase().replace(/\s+/g,'-'))}`;
+    const sheetMenuUrl = website || `https://www.google.com/search?q=${encodeURIComponent((place.name||'') + ' menu')}`;
     document.getElementById('sheet-actions').innerHTML = `
       ${phone ? `<a class="act call" href="tel:${phone}" style="text-decoration:none;">
         <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
         Call</a>` : ''}
+      <div class="act" onclick="openUrl('${sheetMenuUrl}')">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+        Menu</div>
       <div class="act doordash" onclick="openUrl('${ddUrl}')">
         <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
         DoorDash</div>
@@ -1201,15 +1216,23 @@ function initPlaces() {
 function fetchPlaces(lat, lng) {
   if (!placesService) initPlaces();
 
-  const keyword = moodKeywords[state.mood] || 'restaurant';
-  const budgetMap = { '$': 1, '$$': 2, '$$$': 3 };
-  const maxPrice = budgetMap[state.budget] || 2;
+  const config = moodConfig[state.mood] || { keyword: 'restaurant', minPrice: 0, maxPrice: 4 };
+  // For search mode, use the typed cuisine; otherwise use mood keyword
+  const cuisineOverride = (state.mood === 'search' && state.cuisine && state.cuisine !== 'Any cuisine')
+    ? state.cuisine
+    : null;
+  const keyword = cuisineOverride ? `${cuisineOverride} restaurant` : config.keyword;
+
+  // Budget pill overrides price range
+  const budgetMap = { '$': [0,1], '$$': [1,2], '$$$': [2,3], '$$$$': [3,4] };
+  const [minPrice, maxPrice] = budgetMap[state.budget] || [config.minPrice, config.maxPrice];
 
   const request = {
     location: new google.maps.LatLng(lat, lng),
-    radius: 4000, // ~2.5 miles
+    radius: 5000, // ~3 miles
     type: 'restaurant',
     keyword: keyword,
+    minPriceLevel: minPrice,
     maxPriceLevel: maxPrice,
     openNow: true,
   };
