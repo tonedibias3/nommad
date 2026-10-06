@@ -791,7 +791,7 @@ body {
       <div class="sec-hdr">What are you feeling?</div>
 
       <div class="table-card">
-        <div class="table-row" onclick="selectDrinksVibe(this,'happy hour','🍺','happy hour bar deals Augusta')">
+        <div class="table-row" onclick="selectDrinksVibe(this,'happy hour','🍺','happy hour bar specials')">
           <div class="row-icon" style="background:#fff4e0;">🍺</div>
           <div class="row-body">
             <div class="row-title">Happy Hour</div>
@@ -799,7 +799,7 @@ body {
           </div>
           <span class="row-chev">›</span>
         </div>
-        <div class="table-row" onclick="selectDrinksVibe(this,'craft beer','🍻','brewery taproom craft beer bar')">
+        <div class="table-row" onclick="selectDrinksVibe(this,'craft beer','🍻','craft beer brewery taproom')">
           <div class="row-icon" style="background:#e8f4ea;">🍻</div>
           <div class="row-body">
             <div class="row-title">Craft Beer</div>
@@ -807,7 +807,7 @@ body {
           </div>
           <span class="row-chev">›</span>
         </div>
-        <div class="table-row" onclick="selectDrinksVibe(this,'cocktails','🍹','cocktail bar lounge speakeasy')">
+        <div class="table-row" onclick="selectDrinksVibe(this,'cocktails','🍹','cocktail lounge bar')">
           <div class="row-icon" style="background:#fce8f4;">🍹</div>
           <div class="row-body">
             <div class="row-title">Cocktails</div>
@@ -815,7 +815,7 @@ body {
           </div>
           <span class="row-chev">›</span>
         </div>
-        <div class="table-row" onclick="selectDrinksVibe(this,'wine','🍷','wine bar wine shop')">
+        <div class="table-row" onclick="selectDrinksVibe(this,'wine','🍷','wine bar')">
           <div class="row-icon" style="background:#f4e8f4;">🍷</div>
           <div class="row-body">
             <div class="row-title">Wine</div>
@@ -823,7 +823,7 @@ body {
           </div>
           <span class="row-chev">›</span>
         </div>
-        <div class="table-row" onclick="selectDrinksVibe(this,'dive bar','🎱','dive bar sports bar pool')">
+        <div class="table-row" onclick="selectDrinksVibe(this,'dive bar','🎱','sports bar dive bar')">
           <div class="row-icon" style="background:#e8eaf4;">🎱</div>
           <div class="row-body">
             <div class="row-title">Dive Bar</div>
@@ -896,7 +896,7 @@ body {
 
   <div class="context-strip" id="results-context-strip">
     <div class="ctx-pill mood" id="results-mood-pill">🫶 Comfort</div>
-    <div class="ctx-pill" id="results-budget-pill" onclick="cycleBudget()" style="cursor:pointer" title="Tap to change budget">$$</div>
+    <div class="ctx-pill" id="results-budget-pill" onclick="openBudgetPicker()" style="cursor:pointer" title="Tap to change budget">Any budget</div>
     <div class="ctx-pill" id="results-cuisine-pill" onclick="openCuisineFilter()" style="cursor:pointer" title="Tap to filter by cuisine">Any cuisine</div>
     <div class="ctx-pill" id="results-localonly-pill" onclick="toggleLocalOnly()" style="cursor:pointer" title="Toggle local-only">Local only</div>
   </div>
@@ -994,12 +994,22 @@ function navigate(to) {
   if (to === 'results') {
     home.classList.add('exit-left');
     results.classList.add('active');
-    // update results header — show cuisine if set, otherwise mood
+    // update results header — show drinks vibe, cuisine if set, otherwise mood
     const savedCuisine = state.cuisine && state.cuisine !== 'Any cuisine' ? state.cuisine : null;
-    const moodLabel = (state.mood && state.mood !== 'feed' && moodLabels[state.mood])
-      ? moodLabels[state.mood]
-      : savedCuisine ? savedCuisine : 'Find My Spot';
-    const moodEmoji = (state.mood && state.mood !== 'feed') ? state.moodEmoji : '';
+    let moodLabel, moodEmoji;
+    if (state.mood && state.mood.startsWith('drinks_')) {
+      const vibeName = state.mood.replace('drinks_','').replace(/_/g,' ');
+      moodLabel = vibeName.charAt(0).toUpperCase() + vibeName.slice(1);
+      moodEmoji = state.moodEmoji;
+    } else if (state.mood === 'social') {
+      moodLabel = 'Drinks'; moodEmoji = '🥂';
+    } else if (state.mood === 'feed') {
+      moodLabel = 'Feed Me'; moodEmoji = '🎲';
+    } else if (state.mood && moodLabels[state.mood]) {
+      moodLabel = moodLabels[state.mood]; moodEmoji = state.moodEmoji;
+    } else {
+      moodLabel = savedCuisine || 'Find My Spot'; moodEmoji = '';
+    }
     document.getElementById('results-nav-title').textContent = moodLabel;
     document.getElementById('results-mood-pill').textContent = moodEmoji ? `${moodEmoji} ${moodLabel}` : moodLabel;
     // Reset budget but KEEP cuisine from home screen; local-only stays ON by default
@@ -1009,10 +1019,12 @@ function navigate(to) {
     bpill.textContent = 'Any budget';
     bpill.style.color = ''; bpill.style.fontWeight = '500'; bpill.style.borderColor = '';
     const cpill = document.getElementById('results-cuisine-pill');
-    if (savedCuisine) {
+    const isDrinksMode = state.mood && state.mood.startsWith('drinks_') || state.mood === 'social';
+    cpill.style.display = isDrinksMode ? 'none' : '';
+    if (savedCuisine && !isDrinksMode) {
       cpill.textContent = savedCuisine;
       cpill.style.color = 'var(--accent)'; cpill.style.fontWeight = '700'; cpill.style.borderColor = 'rgba(212,84,26,0.4)';
-    } else {
+    } else if (!isDrinksMode) {
       state.cuisine = 'Any cuisine';
       cpill.textContent = 'Any cuisine';
       cpill.style.color = ''; cpill.style.fontWeight = '500'; cpill.style.borderColor = '';
@@ -1136,7 +1148,10 @@ function selectDrinksVibe(el, label, emoji, keyword) {
     state.mood = 'drinks_' + label.replace(/\s/g,'_');
     state.moodEmoji = emoji;
     // Store the keyword in moodConfig dynamically
-    moodConfig[state.mood] = { keyword, minPrice: 0, maxPrice: 3, type: 'bar' };
+    // Use 'bar' type for craft beer/dive; broader search for wine/cocktails/happy hour
+    const narrowTypes = ['craft beer', 'dive bar'];
+    const placeType = narrowTypes.includes(label) ? 'bar' : 'establishment';
+    moodConfig[state.mood] = { keyword, minPrice: 0, maxPrice: 3, type: placeType };
     document.getElementById('drinkCtaTag').textContent = label + ' ' + emoji;
   }
 }
@@ -1167,11 +1182,12 @@ function goResults() {
 }
 
 function goFeedMe() {
-  // treat Feed Me as a random mood pick for now
-  const moods = Object.keys(moodLabels);
-  const pick = moods[Math.floor(Math.random() * moods.length)];
-  state.mood = pick;
-  state.moodEmoji = moodEmojis[pick];
+  const activeDistBtn = document.querySelector('.dist-btn.active');
+  const distLabel = activeDistBtn ? activeDistBtn.textContent.trim() : '15 min';
+  const distMap = { '5 min': 1600, '15 min': 6000, '30 min': 16000 };
+  state.feedRadius = distMap[distLabel] || 6000;
+  state.mood = 'feed';
+  state.moodEmoji = '🎲';
   navigate('results');
 }
 
@@ -1206,18 +1222,42 @@ function calcDist(lat1, lng1, lat2, lng2) {
 }
 
 /* ─── FILTER PILL INTERACTIONS ───────────────────────────── */
-const budgetCycle = ['Any', '$', '$$', '$$$', '$$$$'];
 let localOnlyActive = true; // on by default
 
-function cycleBudget() {
+function openBudgetPicker() {
+  document.getElementById('budget-picker-sheet')?.remove();
+  const options = [
+    { label: 'Any budget', value: 'Any' },
+    { label: '$ · Under $15', value: '$' },
+    { label: '$$ · $15–30', value: '$$' },
+    { label: '$$$ · $30–60', value: '$$$' },
+  ];
+  const sheet = document.createElement('div');
+  sheet.id = 'budget-picker-sheet';
+  sheet.className = 'bottom-sheet open';
+  sheet.innerHTML = `
+    <div class="sheet-backdrop" onclick="document.getElementById('budget-picker-sheet').remove()"></div>
+    <div class="sheet-panel" style="padding-bottom:max(24px,env(safe-area-inset-bottom))">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Budget</div>
+      ${options.map(o => `
+        <div class="sheet-row${state.budget === o.value || (!state.budget && o.value === 'Any') ? ' active' : ''}"
+          onclick="pickBudget('${o.value}')">
+          <span>${o.label}</span>
+          ${state.budget === o.value || (!state.budget && o.value === 'Any') ? '<span style="color:var(--accent)">✓</span>' : ''}
+        </div>`).join('')}
+    </div>`;
+  document.querySelector('.shell').appendChild(sheet);
+}
+
+function pickBudget(val) {
+  state.budget = val;
   const pill = document.getElementById('results-budget-pill');
-  const cur = budgetCycle.indexOf(state.budget || 'Any');
-  const next = budgetCycle[(cur + 1) % budgetCycle.length];
-  state.budget = next;
-  pill.textContent = next === 'Any' ? 'Any budget' : next;
-  pill.style.fontWeight = next !== 'Any' ? '700' : '500';
-  pill.style.color = next !== 'Any' ? 'var(--accent)' : '';
-  pill.style.borderColor = next !== 'Any' ? 'rgba(212,84,26,0.4)' : '';
+  pill.textContent = val === 'Any' ? 'Any budget' : val;
+  pill.style.fontWeight = val !== 'Any' ? '700' : '500';
+  pill.style.color = val !== 'Any' ? 'var(--accent)' : '';
+  pill.style.borderColor = val !== 'Any' ? 'rgba(212,84,26,0.4)' : '';
+  document.getElementById('budget-picker-sheet')?.remove();
   loadResults();
 }
 
@@ -1677,9 +1717,12 @@ function fetchPlaces(lat, lng) {
   // Social mood searches bars; everything else searches restaurants
   const placeType = config.type || 'restaurant';
 
+  // Feed Me uses the radius selected on home screen; default 8000m
+  const searchRadius = (state.mood === 'feed' && state.feedRadius) ? state.feedRadius : 8000;
+
   const request = {
     location: new google.maps.LatLng(lat, lng),
-    radius: 8000, // ~5 miles (slightly wider for bar searches)
+    radius: searchRadius,
     type: placeType,
     keyword: keyword,
     minPriceLevel: minPrice,
@@ -1701,9 +1744,8 @@ function fetchPlaces(lat, lng) {
       const d = calcDist(p.geometry.location.lat(), p.geometry.location.lng(), lat, lng);
       return d <= 24140; // 15 miles
     });
-    // Filter chains if localOnly toggle is on
-    const localToggleOn = document.getElementById('localToggle')?.classList.contains('on');
-    const filtered = localToggleOn ? withinRange.filter(p => !isChain(p)) : withinRange;
+    // Filter chains if localOnly is active (uses results-page state)
+    const filtered = localOnlyActive ? withinRange.filter(p => !isChain(p)) : withinRange;
     const pool = filtered.length > 0 ? filtered : withinRange;
     const top = pool.slice(0, 6);
 
