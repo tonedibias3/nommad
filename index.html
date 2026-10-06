@@ -887,7 +887,7 @@ body {
       <div class="nav-title" id="results-nav-title">Comfort</div>
       <div class="nav-sub" id="results-nav-sub">Augusta, GA</div>
     </div>
-    <div class="refine-btn">
+    <div class="refine-btn" onclick="openRefineSheet()">
       <svg viewBox="0 0 24 24"><path d="M4.25 5.61C6.27 8.2 10 13 10 13v6c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-6s3.72-4.8 5.74-7.39A.998.998 0 0 0 18.95 4H5.04a1 1 0 0 0-.79 1.61z"/></svg>
       Refine
     </div>
@@ -1276,29 +1276,133 @@ function toggleLocalOnly() {
 }
 
 function openCuisineFilter() {
+  openRefineSheet('cuisine');
+}
+
+function openRefineSheet(focusSection) {
+  document.getElementById('refine-sheet')?.remove();
   const cuisines = ['Any cuisine','American','Italian','Mexican','Chinese','Japanese','Thai','Indian','Mediterranean','BBQ','Seafood','Pizza','Burgers','Sushi'];
+  const budgets = [
+    { label: 'Any budget', value: 'Any' },
+    { label: '$ · Under $15', value: '$' },
+    { label: '$$ · $15–30', value: '$$' },
+    { label: '$$$ · $30–60', value: '$$$' },
+  ];
   const cur = state.cuisine || 'Any cuisine';
-  // Build a quick bottom sheet
-  let existing = document.getElementById('cuisine-picker-sheet');
-  if (existing) existing.remove();
+  const curBudget = state.budget || 'Any';
+
   const sheet = document.createElement('div');
-  sheet.id = 'cuisine-picker-sheet';
-  sheet.style.cssText = `position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;padding:20px;z-index:200;max-height:70%;overflow-y:auto;box-shadow:0 -4px 24px rgba(0,0,0,0.14);`;
+  sheet.id = 'refine-sheet';
+  sheet.className = 'bottom-sheet open';
   sheet.innerHTML = `
-    <div style="width:36px;height:4px;background:#e5e5ea;border-radius:2px;margin:0 auto 16px;"></div>
-    <div style="font-size:16px;font-weight:700;margin-bottom:14px;color:#1c1c1e;">Filter by cuisine</div>
-    ${cuisines.map(c => `
-      <div onclick="pickCuisine('${c}')" style="padding:12px 0;border-bottom:1px solid #f2f2f7;font-size:15px;cursor:pointer;color:${c===cur?'var(--accent)':'#1c1c1e'};font-weight:${c===cur?'700':'400'}">
-        ${c === cur ? '✓ ' : ''}${c}
-      </div>`).join('')}
-  `;
+    <div class="sheet-backdrop" onclick="document.getElementById('refine-sheet').remove()"></div>
+    <div class="sheet-panel" style="padding-bottom:max(24px,env(safe-area-inset-bottom));max-height:82vh;overflow-y:auto;">
+      <div class="sheet-handle"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 16px;">
+        <div class="sheet-title" style="margin:0">Refine Results</div>
+        <div onclick="resetFilters()" style="font-size:13px;font-weight:600;color:var(--accent);cursor:pointer;padding:4px 0;">Reset</div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px;">Budget</div>
+      ${budgets.map(o => `
+        <div class="sheet-row${curBudget === o.value ? ' active' : ''}" onclick="pickBudgetInline('${o.value}')">
+          <span>${o.label}</span>
+          ${curBudget === o.value ? '<span style="color:var(--accent)">✓</span>' : ''}
+        </div>`).join('')}
+
+      <div style="height:1px;background:var(--sep-lt);margin:16px 0;"></div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px;">Cuisine</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
+        ${cuisines.map(c => `
+          <div onclick="pickCuisineInline('${c}')" style="
+            padding:7px 14px;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;
+            background:${c===cur ? 'var(--accent)' : 'var(--sep-lt)'};
+            color:${c===cur ? '#fff' : 'var(--ink2)'};
+          ">${c}</div>`).join('')}
+      </div>
+
+      <div style="height:1px;background:var(--sep-lt);margin:16px 0;"></div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px;">Spots</div>
+      <div class="sheet-row${localOnlyActive ? ' active' : ''}" onclick="toggleLocalOnlyInline(this)">
+        <span>Local spots only</span>
+        <span style="color:${localOnlyActive ? 'var(--accent)' : 'var(--sep)'}; font-size:20px;">${localOnlyActive ? '✓' : ''}</span>
+      </div>
+
+      <button onclick="applyRefine()" style="
+        width:100%;margin-top:20px;padding:14px;border-radius:12px;border:none;
+        background:var(--accent);color:#fff;font-size:15px;font-weight:700;cursor:pointer;
+        font-family:var(--ui);
+      ">Show Results</button>
+    </div>`;
   document.querySelector('.shell').appendChild(sheet);
-  // tap outside closes
-  setTimeout(() => {
-    document.addEventListener('click', function closePicker(e) {
-      if (!sheet.contains(e.target)) { sheet.remove(); document.removeEventListener('click', closePicker); }
-    });
-  }, 100);
+}
+
+function pickBudgetInline(val) {
+  // Update all budget rows visually
+  const sheet = document.getElementById('refine-sheet');
+  if (!sheet) return;
+  sheet.querySelectorAll('.sheet-row').forEach((row, i) => {
+    const budgets = ['Any','$','$$','$$$'];
+    if (i < budgets.length) {
+      const isActive = budgets[i] === val;
+      row.classList.toggle('active', isActive);
+      const check = row.querySelector('span:last-child');
+      if (check) check.textContent = isActive ? '✓' : '';
+      if (check) check.style.color = 'var(--accent)';
+    }
+  });
+  state.budget = val;
+}
+
+function pickCuisineInline(cuisine) {
+  state.cuisine = cuisine;
+  const sheet = document.getElementById('refine-sheet');
+  if (!sheet) return;
+  sheet.querySelectorAll('[onclick^="pickCuisineInline"]').forEach(el => {
+    const c = el.textContent.trim();
+    el.style.background = c === cuisine ? 'var(--accent)' : 'var(--sep-lt)';
+    el.style.color = c === cuisine ? '#fff' : 'var(--ink2)';
+  });
+}
+
+function toggleLocalOnlyInline(rowEl) {
+  localOnlyActive = !localOnlyActive;
+  rowEl.classList.toggle('active', localOnlyActive);
+  const check = rowEl.querySelector('span:last-child');
+  if (check) { check.textContent = localOnlyActive ? '✓' : ''; check.style.color = 'var(--accent)'; }
+}
+
+function applyRefine() {
+  document.getElementById('refine-sheet')?.remove();
+  // Update pill labels
+  const bpill = document.getElementById('results-budget-pill');
+  bpill.textContent = state.budget === 'Any' ? 'Any budget' : state.budget;
+  bpill.style.fontWeight = state.budget !== 'Any' ? '700' : '500';
+  bpill.style.color = state.budget !== 'Any' ? 'var(--accent)' : '';
+  bpill.style.borderColor = state.budget !== 'Any' ? 'rgba(212,84,26,0.4)' : '';
+
+  const cpill = document.getElementById('results-cuisine-pill');
+  cpill.textContent = state.cuisine || 'Any cuisine';
+  const cActive = state.cuisine && state.cuisine !== 'Any cuisine';
+  cpill.style.fontWeight = cActive ? '700' : '500';
+  cpill.style.color = cActive ? 'var(--accent)' : '';
+  cpill.style.borderColor = cActive ? 'rgba(212,84,26,0.4)' : '';
+
+  const lpill = document.getElementById('results-localonly-pill');
+  lpill.style.background = localOnlyActive ? 'var(--accent-bg)' : '';
+  lpill.style.color = localOnlyActive ? 'var(--accent)' : '';
+  lpill.style.borderColor = localOnlyActive ? 'rgba(212,84,26,0.4)' : '';
+  lpill.style.fontWeight = localOnlyActive ? '700' : '500';
+
+  loadResults();
+}
+
+function resetFilters() {
+  state.budget = 'Any';
+  state.cuisine = 'Any cuisine';
+  localOnlyActive = true;
+  document.getElementById('refine-sheet')?.remove();
+  applyRefine();
 }
 
 function pickCuisine(cuisine) {
