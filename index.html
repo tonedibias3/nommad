@@ -186,7 +186,7 @@ body {
 .ic-adventure { background: #dff0e8; }
 .ic-fancy     { background: #f5edda; }
 .ic-quick     { background: #fde8c5; }
-.ic-social    { background: #f5dfd6; }
+.ic-social    { background: #e8eef8; }
 
 .row-body { flex: 1; min-width: 0; }
 .row-title { font-size: 15px; font-weight: 600; color: var(--ink); }
@@ -420,7 +420,7 @@ body {
   position: relative; z-index: 1;
   background: var(--card);
   border-radius: 20px 20px 0 0;
-  max-height: 88vh; overflow-y: auto;
+  max-height: 72vh; overflow-y: auto;
   transform: translateY(100%);
   transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
   -webkit-overflow-scrolling: touch;
@@ -487,7 +487,7 @@ body {
   background: var(--sep); margin: 10px auto 0;
 }
 .sheet-photo {
-  width: 100%; height: 220px; object-fit: cover; display: block;
+  width: 100%; height: 180px; object-fit: cover; display: block;
   background: #e0e0e5;
 }
 .sheet-body { padding: 16px 20px 40px; }
@@ -663,8 +663,8 @@ body {
 
   <div class="seg-wrap">
     <div class="seg">
-      <div class="seg-btn active" onclick="setMode(this)">🍽 Food</div>
-      <div class="seg-btn" onclick="setMode(this)">🍹 Drinks</div>
+      <div class="seg-btn active" onclick="setMode(this)">Food</div>
+      <div class="seg-btn" onclick="setMode(this)">Drinks</div>
     </div>
   </div>
 
@@ -684,7 +684,7 @@ body {
 
     <div class="table-card" id="moodTable">
       <div class="table-row" onclick="selectMood(this,'comfort','🫶')">
-        <div class="row-icon ic-comfort">🫶</div>
+        <div class="row-icon ic-comfort"><svg viewBox="0 0 24 24" width="20" height="20" fill="#c4622a"><path d="M2 19h20v2H2zm2-3h16l-1.5-8H5.5L4 16zm3.5-6h9l.5 2.67H7l.5-2.67zM12 3a3 3 0 0 0-3 3h2a1 1 0 0 1 2 0h2a3 3 0 0 0-3-3z"/></svg></div>
         <div class="row-body">
           <div class="row-title">Comfort</div>
           <div class="row-sub">Familiar, feel-good, easy</div>
@@ -692,7 +692,7 @@ body {
         <span class="row-chev">›</span>
       </div>
       <div class="table-row" onclick="selectMood(this,'adventure','🌏')">
-        <div class="row-icon ic-adventure">🌏</div>
+        <div class="row-icon ic-adventure"><svg viewBox="0 0 24 24" width="20" height="20" fill="#2a7a4a"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13l-2 6 6-2-2-6-2 2z"/></svg></div>
         <div class="row-body">
           <div class="row-title">Adventure</div>
           <div class="row-sub">Something new, unexpected</div>
@@ -700,7 +700,7 @@ body {
         <span class="row-chev">›</span>
       </div>
       <div class="table-row" onclick="selectMood(this,'fancy','🕯️')">
-        <div class="row-icon ic-fancy">🕯️</div>
+        <div class="row-icon ic-fancy"><svg viewBox="0 0 24 24" width="20" height="20" fill="#8a6a2a"><path d="M20 3H4l4 9c0 2.21 1.79 4 4 4s4-1.79 4-4l4-9zm-8 11c-1.1 0-2-.9-2-2h4c0 1.1-.9 2-2 2zm-2.26-3L7.32 5h9.36l-2.42 6H9.74zM11 18v2H7v2h10v-2h-4v-2h-2z"/></svg></div>
         <div class="row-body">
           <div class="row-title">Fancy</div>
           <div class="row-sub">Special occasion energy</div>
@@ -708,7 +708,7 @@ body {
         <span class="row-chev">›</span>
       </div>
       <div class="table-row" onclick="selectMood(this,'quick','⚡')">
-        <div class="row-icon ic-quick">⚡</div>
+        <div class="row-icon ic-quick"><svg viewBox="0 0 24 24" width="20" height="20" fill="#c47a1a"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg></div>
         <div class="row-body">
           <div class="row-title">Quick</div>
           <div class="row-sub">Fast and good, no wait</div>
@@ -716,7 +716,7 @@ body {
         <span class="row-chev">›</span>
       </div>
       <div class="table-row" onclick="selectMood(this,'social','🥂')">
-        <div class="row-icon ic-social">🥂</div>
+        <div class="row-icon ic-social"><svg viewBox="0 0 24 24" width="20" height="20" fill="#2a4a8a"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
         <div class="row-body">
           <div class="row-title">Social</div>
           <div class="row-sub">Group dinner, bar vibes, a scene</div>
@@ -771,7 +771,6 @@ body {
           <div class="fm-title">Feed Me.</div>
           <div class="fm-sub">Pick a radius. We'll find the best local spot right now.</div>
         </div>
-        <span class="fm-dice">🎲</span>
       </div>
       <div class="dist-seg">
         <div class="dist-btn active" onclick="pickDist(this)">5 min</div>
@@ -792,7 +791,7 @@ body {
 
       <div class="table-card">
         <div class="table-row" onclick="selectDrinksVibe(this,'happy hour','🍺','happy hour bar specials')">
-          <div class="row-icon" style="background:#fff4e0;">🍺</div>
+          <div class="row-icon" style="background:#fff4e0;"><svg viewBox="0 0 24 24" width="20" height="20" fill="#c47a1a"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg></div>
           <div class="row-body">
             <div class="row-title">Happy Hour</div>
             <div class="row-sub">Deals, specials, cheap drinks</div>
@@ -800,7 +799,7 @@ body {
           <span class="row-chev">›</span>
         </div>
         <div class="table-row" onclick="selectDrinksVibe(this,'craft beer','🍻','craft beer brewery taproom')">
-          <div class="row-icon" style="background:#e8f4ea;">🍻</div>
+          <div class="row-icon" style="background:#e8f4ea;"><svg viewBox="0 0 24 24" width="20" height="20" fill="#2a6a3a"><path d="M7 2v2h1v14c0 1.1.9 2 2 2h4c1.1 0 2-.9 2-2V4h1V2H7zm4 14H9v-2h2v2zm0-4H9v-2h2v2zm0-4H9V6h2v2zm4 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V6h2v2z"/></svg></div>
           <div class="row-body">
             <div class="row-title">Craft Beer</div>
             <div class="row-sub">Brewery, taproom, local pints</div>
@@ -808,7 +807,7 @@ body {
           <span class="row-chev">›</span>
         </div>
         <div class="table-row" onclick="selectDrinksVibe(this,'cocktails','🍹','cocktail lounge bar')">
-          <div class="row-icon" style="background:#fce8f4;">🍹</div>
+          <div class="row-icon" style="background:#fce8f4;"><svg viewBox="0 0 24 24" width="20" height="20" fill="#8a2a6a"><path d="M21 5l-9 9-9-9h18zM11 15.83V20H9v2h6v-2h-2v-4.17C13 15.4 20.54 8 20.54 8H3.46C3.46 8 11 15.4 11 15.83z"/></svg></div>
           <div class="row-body">
             <div class="row-title">Cocktails</div>
             <div class="row-sub">Bar, lounge, craft cocktails</div>
@@ -816,7 +815,7 @@ body {
           <span class="row-chev">›</span>
         </div>
         <div class="table-row" onclick="selectDrinksVibe(this,'wine','🍷','wine bar')">
-          <div class="row-icon" style="background:#f4e8f4;">🍷</div>
+          <div class="row-icon" style="background:#f4e8f4;"><svg viewBox="0 0 24 24" width="20" height="20" fill="#6a2a8a"><path d="M20 3H4l4 9c0 2.21 1.79 4 4 4s4-1.79 4-4l4-9zm-8 11c-1.1 0-2-.9-2-2h4c0 1.1-.9 2-2 2zm-2.26-3L7.32 5h9.36l-2.42 6H9.74zM11 18v2H7v2h10v-2h-4v-2h-2z"/></svg></div>
           <div class="row-body">
             <div class="row-title">Wine</div>
             <div class="row-sub">Wine bar, relaxed vibes</div>
@@ -824,7 +823,7 @@ body {
           <span class="row-chev">›</span>
         </div>
         <div class="table-row" onclick="selectDrinksVibe(this,'dive bar','🎱','sports bar dive bar')">
-          <div class="row-icon" style="background:#e8eaf4;">🎱</div>
+          <div class="row-icon" style="background:#e8eaf4;"><svg viewBox="0 0 24 24" width="20" height="20" fill="#2a2a8a"><path d="M4.5 14c0 2.21 1.79 4 4 4h3c2.21 0 4-1.79 4-4V9H4.5v5zm7.5-3h1.5v3H12v-3zm-3 0h1.5v3H9v-3zm-2.5 0H8v3H6.5v-3zM18.5 9H17v5.5c0 .83-.67 1.5-1.5 1.5H14c0 1.1-.9 2-2 2h-3c-2.21 0-4-1.79-4-4V9h-1V7h15v2h.5z"/></svg></div>
           <div class="row-body">
             <div class="row-title">Dive Bar</div>
             <div class="row-sub">Cheap, no pretense, good time</div>
@@ -895,7 +894,7 @@ body {
   </div>
 
   <div class="context-strip" id="results-context-strip">
-    <div class="ctx-pill mood" id="results-mood-pill">🫶 Comfort</div>
+    <div class="ctx-pill mood" id="results-mood-pill">Comfort</div>
     <div class="ctx-pill" id="results-budget-pill" onclick="openBudgetPicker()" style="cursor:pointer" title="Tap to change budget">Any budget</div>
     <div class="ctx-pill" id="results-cuisine-pill" onclick="openCuisineFilter()" style="cursor:pointer" title="Tap to filter by cuisine">Any cuisine</div>
     <div class="ctx-pill" id="results-localonly-pill" onclick="toggleLocalOnly()" style="cursor:pointer" title="Toggle local-only">Local only</div>
@@ -913,8 +912,7 @@ body {
     <div class="result-count"><strong>6 spots</strong> near you</div>
 
     <div class="chain-nudge">
-      <span class="nudge-icon">🏘️</span>
-      <div class="nudge-text"><strong>Local only is on.</strong> Showing independent and regional spots — no national chains.</div>
+      <div class="nudge-text"><strong>Local spots only.</strong> Showing independent restaurants — no national chains.</div>
     </div>
 
     <div id="results-list">
@@ -1011,7 +1009,7 @@ function navigate(to) {
       moodLabel = savedCuisine || 'Find My Spot'; moodEmoji = '';
     }
     document.getElementById('results-nav-title').textContent = moodLabel;
-    document.getElementById('results-mood-pill').textContent = moodEmoji ? `${moodEmoji} ${moodLabel}` : moodLabel;
+    document.getElementById('results-mood-pill').textContent = moodLabel;
     // Reset budget but KEEP cuisine from home screen; local-only stays ON by default
     state.budget = 'Any';
     localOnlyActive = true;
@@ -1094,7 +1092,7 @@ function updateCtaTag() {
   if (state.mood && state.mood !== 'feed') {
     const label = moodLabels[state.mood] || state.mood;
     const emoji = state.moodEmoji || '';
-    tag.textContent = `${label} ${emoji}`;
+    tag.textContent = label;
   } else if (state.cuisine && state.cuisine !== 'Any cuisine') {
     tag.textContent = `${state.cuisine} near you`;
   } else {
@@ -1154,7 +1152,7 @@ function selectDrinksVibe(el, label, emoji, keyword) {
     const narrowTypes = ['craft beer', 'dive bar'];
     const placeType = narrowTypes.includes(label) ? 'bar' : 'establishment';
     moodConfig[state.mood] = { keyword, minPrice: 0, maxPrice: 3, type: placeType };
-    document.getElementById('drinkCtaTag').textContent = label + ' ' + emoji;
+    document.getElementById('drinkCtaTag').textContent = label;
   }
 }
 
@@ -1568,7 +1566,7 @@ function buildCard(place, index, userLat, userLng) {
       <div class="r-photo" style="background:${gradient}; position:relative;">
         ${photoUrl
           ? `<img src="${photoUrl}" alt="${name}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none'">`
-          : `<span style="font-size:52px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">${emoji}</span>`
+          : `<div style="width:100%;height:100%;background:${gradient};"></div>`
         }
         <div class="r-rank">${rankLabel}</div>
         ${openBadge}
