@@ -677,6 +677,9 @@ body {
       </div>
     </div>
 
+    <!-- ── FOOD MODE ── -->
+    <div id="food-mode-content">
+
     <div class="sec-hdr">What's the vibe?</div>
 
     <div class="table-card" id="moodTable">
@@ -779,6 +782,66 @@ body {
     </div>
 
     <div style="height:10px;"></div>
+
+    </div><!-- /food-mode-content -->
+
+    <!-- ── DRINKS MODE ── -->
+    <div id="drinks-mode-content" style="display:none;">
+
+      <div class="sec-hdr">What are you feeling?</div>
+
+      <div class="table-card">
+        <div class="table-row" onclick="selectDrinksVibe(this,'happy hour','🍺','happy hour bar deals Augusta')">
+          <div class="row-icon" style="background:#fff4e0;">🍺</div>
+          <div class="row-body">
+            <div class="row-title">Happy Hour</div>
+            <div class="row-sub">Deals, specials, cheap drinks</div>
+          </div>
+          <span class="row-chev">›</span>
+        </div>
+        <div class="table-row" onclick="selectDrinksVibe(this,'craft beer','🍻','brewery taproom craft beer bar')">
+          <div class="row-icon" style="background:#e8f4ea;">🍻</div>
+          <div class="row-body">
+            <div class="row-title">Craft Beer</div>
+            <div class="row-sub">Brewery, taproom, local pints</div>
+          </div>
+          <span class="row-chev">›</span>
+        </div>
+        <div class="table-row" onclick="selectDrinksVibe(this,'cocktails','🍹','cocktail bar lounge speakeasy')">
+          <div class="row-icon" style="background:#fce8f4;">🍹</div>
+          <div class="row-body">
+            <div class="row-title">Cocktails</div>
+            <div class="row-sub">Bar, lounge, craft cocktails</div>
+          </div>
+          <span class="row-chev">›</span>
+        </div>
+        <div class="table-row" onclick="selectDrinksVibe(this,'wine','🍷','wine bar wine shop')">
+          <div class="row-icon" style="background:#f4e8f4;">🍷</div>
+          <div class="row-body">
+            <div class="row-title">Wine</div>
+            <div class="row-sub">Wine bar, relaxed vibes</div>
+          </div>
+          <span class="row-chev">›</span>
+        </div>
+        <div class="table-row" onclick="selectDrinksVibe(this,'dive bar','🎱','dive bar sports bar pool')">
+          <div class="row-icon" style="background:#e8eaf4;">🎱</div>
+          <div class="row-body">
+            <div class="row-title">Dive Bar</div>
+            <div class="row-sub">Cheap, no pretense, good time</div>
+          </div>
+          <span class="row-chev">›</span>
+        </div>
+      </div>
+
+      <div class="cta-wrap open" style="margin-top:16px;">
+        <button class="cta-btn" onclick="goResults()">
+          Find a Spot
+          <span class="cta-tag" id="drinkCtaTag">Bar near you</span>
+        </button>
+      </div>
+
+    </div><!-- /drinks-mode-content -->
+
   </div><!-- /scroll -->
 
   <nav class="tab-bar">
@@ -939,9 +1002,9 @@ function navigate(to) {
     const moodEmoji = (state.mood && state.mood !== 'feed') ? state.moodEmoji : '';
     document.getElementById('results-nav-title').textContent = moodLabel;
     document.getElementById('results-mood-pill').textContent = moodEmoji ? `${moodEmoji} ${moodLabel}` : moodLabel;
-    // Reset budget/localOnly but KEEP cuisine from home screen selection
+    // Reset budget but KEEP cuisine from home screen; local-only stays ON by default
     state.budget = 'Any';
-    localOnlyActive = false;
+    localOnlyActive = true;
     const bpill = document.getElementById('results-budget-pill');
     bpill.textContent = 'Any budget';
     bpill.style.color = ''; bpill.style.fontWeight = '500'; bpill.style.borderColor = '';
@@ -955,7 +1018,10 @@ function navigate(to) {
       cpill.style.color = ''; cpill.style.fontWeight = '500'; cpill.style.borderColor = '';
     }
     const lpill = document.getElementById('results-localonly-pill');
-    lpill.style.background = ''; lpill.style.color = ''; lpill.style.fontWeight = '500'; lpill.style.borderColor = '';
+    lpill.style.background = 'var(--accent-bg)';
+    lpill.style.color = 'var(--accent)';
+    lpill.style.fontWeight = '700';
+    lpill.style.borderColor = 'rgba(212,84,26,0.4)';
     // scroll results to top
     results.querySelector('.scroll').scrollTop = 0;
     // fetch real places
@@ -1058,9 +1124,37 @@ function pickDist(el) {
   el.classList.add('active');
 }
 
+function selectDrinksVibe(el, label, emoji, keyword) {
+  document.querySelectorAll('#drinks-mode-content .table-row').forEach(r => r.classList.remove('sel'));
+  const alreadySelected = el.classList.contains('sel');
+  if (alreadySelected) {
+    el.classList.remove('sel');
+    state.mood = 'social'; state.moodEmoji = '🥂';
+    document.getElementById('drinkCtaTag').textContent = 'Bar near you';
+  } else {
+    el.classList.add('sel');
+    state.mood = 'drinks_' + label.replace(/\s/g,'_');
+    state.moodEmoji = emoji;
+    // Store the keyword in moodConfig dynamically
+    moodConfig[state.mood] = { keyword, minPrice: 0, maxPrice: 3, type: 'bar' };
+    document.getElementById('drinkCtaTag').textContent = label + ' ' + emoji;
+  }
+}
+
 function setMode(btn) {
   document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  const isDrinks = btn.textContent.includes('Drinks');
+  // Toggle food vs drinks UI
+  document.getElementById('food-mode-content').style.display = isDrinks ? 'none' : 'block';
+  document.getElementById('drinks-mode-content').style.display = isDrinks ? 'block' : 'none';
+  // Reset state
+  state.mood = null; state.moodEmoji = '';
+  state.cuisine = 'Any cuisine'; state.budget = 'Any';
+  document.querySelectorAll('.table-row').forEach(r => r.classList.remove('sel'));
+  document.getElementById('ctaTag').textContent = isDrinks ? 'Bar near you' : 'Near you now';
+  document.getElementById('moodTable').style.borderRadius = '';
+  updateCtaTag();
 }
 
 function goResults() {
@@ -1113,7 +1207,7 @@ function calcDist(lat1, lng1, lat2, lng2) {
 
 /* ─── FILTER PILL INTERACTIONS ───────────────────────────── */
 const budgetCycle = ['Any', '$', '$$', '$$$', '$$$$'];
-let localOnlyActive = false;
+let localOnlyActive = true; // on by default
 
 function cycleBudget() {
   const pill = document.getElementById('results-budget-pill');
@@ -1173,6 +1267,17 @@ function pickCuisine(cuisine) {
   pill.style.color = active ? 'var(--accent)' : '';
   pill.style.fontWeight = active ? '700' : '500';
   pill.style.borderColor = active ? 'rgba(212,84,26,0.4)' : '';
+  // Update nav title to reflect new cuisine
+  const navTitle = document.getElementById('results-nav-title');
+  if (navTitle) {
+    if (active) {
+      navTitle.textContent = cuisine;
+    } else if (state.mood && state.mood !== 'feed' && moodLabels[state.mood]) {
+      navTitle.textContent = moodLabels[state.mood];
+    } else {
+      navTitle.textContent = 'Find My Spot';
+    }
+  }
   document.getElementById('cuisine-picker-sheet')?.remove();
   loadResults();
 }
