@@ -25,6 +25,29 @@
   --display:   'Fraunces', Georgia, serif;
 }
 
+/* ─── DARK MODE ──────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg:        #1c1c1e;
+  --card:      #2c2c2e;
+  --ink:       #ffffff;
+  --ink2:      #ebebf5cc;
+  --ink3:      #ebebf599;
+  --sep:       #3a3a3c;
+  --sep-lt:    #2c2c2e;
+  --accent:    #ff6b35;
+  --accent-bg: #2c1810;
+}
+[data-theme="dark"] body { background: #000; }
+[data-theme="dark"] .shell { background: var(--bg); box-shadow: 0 28px 64px rgba(0,0,0,0.5); }
+[data-theme="dark"] .skel-photo,
+[data-theme="dark"] .skel-line { background: linear-gradient(90deg, #2c2c2e 25%, #3a3a3c 50%, #2c2c2e 75%); background-size: 200% 100%; }
+[data-theme="dark"] .r-card { background: var(--card); }
+[data-theme="dark"] .sheet-panel { background: #1c1c1e; }
+[data-theme="dark"] .bottom-sheet .sheet-panel { background: #1c1c1e; }
+[data-theme="dark"] #detail-panel { background: #1c1c1e; }
+[data-theme="dark"] .seg-ctrl { background: #2c2c2e; }
+[data-theme="dark"] .seg-btn.active { background: #3a3a3c; color: #fff; }
+
 /* ─── SKELETON LOADING ───────────────────────────────────── */
 .skel-photo {
   width: 100%; height: 180px;
@@ -405,8 +428,7 @@ body {
 
 /* ─── DETAIL BOTTOM SHEET ───────────────────────────────── */
 #detail-sheet {
-  position: fixed; inset: 0; z-index: 200;
-  display: flex; flex-direction: column; justify-content: flex-end;
+  position: absolute; inset: 0; z-index: 200;
   pointer-events: none;
 }
 #detail-sheet.open { pointer-events: all; }
@@ -417,10 +439,10 @@ body {
 }
 #detail-sheet.open #detail-backdrop { background: rgba(0,0,0,0.45); }
 #detail-panel {
-  position: relative; z-index: 1;
+  position: absolute; bottom: 0; left: 0; right: 0; z-index: 1;
   background: var(--card);
   border-radius: 20px 20px 0 0;
-  max-height: 72vh; overflow-y: auto;
+  max-height: 70vh; overflow-y: auto;
   transform: translateY(100%);
   transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
   -webkit-overflow-scrolling: touch;
@@ -563,7 +585,7 @@ body {
 .badge-locals { background: var(--accent); color: #fff; }
 .badge-hidden { background: rgba(0,0,0,0.55); backdrop-filter: blur(8px); color: #fff; }
 
-.r-body { padding: 14px 16px 0; }
+.r-body { padding: 14px 16px 0; text-align: left; }
 .r-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .r-name { font-size: 17px; font-weight: 700; color: var(--ink); letter-spacing: -0.2px; }
 .r-price-type { font-size: 13px; color: var(--ink3); font-weight: 500; margin-top: 2px; }
@@ -658,7 +680,12 @@ body {
 
   <div class="large-title-bar">
     <div class="app-name">nomm<em>.</em></div>
-    <div class="loc-pill" id="loc-pill" onclick="openLocationPicker()"><span class="loc-dot" id="loc-dot"></span> <span id="loc-label">Augusta, GA</span></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div id="dark-toggle" onclick="toggleDarkMode()" style="width:34px;height:34px;border-radius:50%;background:var(--sep-lt);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+        <svg id="dark-icon" viewBox="0 0 24 24" width="18" height="18" fill="var(--ink3)"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
+      </div>
+      <div class="loc-pill" id="loc-pill" onclick="openLocationPicker()"><span class="loc-dot" id="loc-dot"></span> <span id="loc-label">Augusta, GA</span></div>
+    </div>
   </div>
 
   <div class="seg-wrap">
@@ -887,9 +914,14 @@ body {
       <div class="nav-title" id="results-nav-title">Comfort</div>
       <div class="nav-sub" id="results-nav-sub">Augusta, GA</div>
     </div>
-    <div class="refine-btn" onclick="openRefineSheet()">
-      <svg viewBox="0 0 24 24"><path d="M4.25 5.61C6.27 8.2 10 13 10 13v6c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-6s3.72-4.8 5.74-7.39A.998.998 0 0 0 18.95 4H5.04a1 1 0 0 0-.79 1.61z"/></svg>
-      Refine
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div id="dark-toggle-results" onclick="toggleDarkMode()" style="width:30px;height:30px;border-radius:50%;background:var(--sep-lt);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
+        <svg id="dark-icon-results" viewBox="0 0 24 24" width="15" height="15" fill="var(--ink3)"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
+      </div>
+      <div class="refine-btn" onclick="openRefineSheet()">
+        <svg viewBox="0 0 24 24"><path d="M4.25 5.61C6.27 8.2 10 13 10 13v6c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-6s3.72-4.8 5.74-7.39A.998.998 0 0 0 18.95 4H5.04a1 1 0 0 0-.79 1.61z"/></svg>
+        Refine
+      </div>
     </div>
   </div>
 
@@ -971,6 +1003,24 @@ const state = {
   cuisine: 'Any cuisine',
   localOnly: false,
 };
+
+/* ─── DARK MODE TOGGLE ───────────────────────────────────── */
+function toggleDarkMode() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  const moonPath = '<path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>';
+  const sunPath = '<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-12.37a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>';
+  const newPath = isDark ? moonPath : sunPath;
+  ['dark-icon', 'dark-icon-results'].forEach(id => {
+    const icon = document.getElementById(id);
+    if (icon) icon.innerHTML = newPath;
+  });
+  const toggleBg = isDark ? 'var(--sep-lt)' : '#3a3a3c';
+  ['dark-toggle', 'dark-toggle-results'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.background = toggleBg;
+  });
+}
 
 /* ─── CLOCK ─────────────────────────────────────────────── */
 function tick() {
@@ -1234,6 +1284,7 @@ function openBudgetPicker() {
     { label: '$$ · $15–30', value: '$$' },
     { label: '$$$ · $30–60', value: '$$$' },
   ];
+  const cur = state.budget || 'Any';
   const sheet = document.createElement('div');
   sheet.id = 'budget-picker-sheet';
   sheet.className = 'bottom-sheet open';
@@ -1243,22 +1294,24 @@ function openBudgetPicker() {
       <div class="sheet-handle"></div>
       <div class="sheet-title">Budget</div>
       ${options.map(o => `
-        <div class="sheet-row${state.budget === o.value || (!state.budget && o.value === 'Any') ? ' active' : ''}"
-          onclick="pickBudget('${o.value}')">
+        <div class="sheet-row${cur === o.value ? ' active' : ''}"
+          onclick="pickBudget('${o.value}', ${cur === o.value && o.value !== 'Any'})">
           <span>${o.label}</span>
-          ${state.budget === o.value || (!state.budget && o.value === 'Any') ? '<span style="color:var(--accent)">✓</span>' : ''}
+          ${cur === o.value ? '<span style="color:var(--accent)">✓</span>' : ''}
         </div>`).join('')}
     </div>`;
   document.querySelector('.shell').appendChild(sheet);
 }
 
-function pickBudget(val) {
-  state.budget = val;
+function pickBudget(val, isDeselect) {
+  // If tapping the currently selected (non-Any) budget, deselect back to Any
+  const effectiveVal = isDeselect ? 'Any' : val;
+  state.budget = effectiveVal;
   const pill = document.getElementById('results-budget-pill');
-  pill.textContent = val === 'Any' ? 'Any budget' : val;
-  pill.style.fontWeight = val !== 'Any' ? '700' : '500';
-  pill.style.color = val !== 'Any' ? 'var(--accent)' : '';
-  pill.style.borderColor = val !== 'Any' ? 'rgba(212,84,26,0.4)' : '';
+  pill.textContent = effectiveVal === 'Any' ? 'Any budget' : effectiveVal;
+  pill.style.fontWeight = effectiveVal !== 'Any' ? '700' : '500';
+  pill.style.color = effectiveVal !== 'Any' ? 'var(--accent)' : '';
+  pill.style.borderColor = effectiveVal !== 'Any' ? 'rgba(212,84,26,0.4)' : '';
   document.getElementById('budget-picker-sheet')?.remove();
   loadResults();
 }
@@ -1281,7 +1334,7 @@ function openCuisineFilter() {
 
 function openRefineSheet(focusSection) {
   document.getElementById('refine-sheet')?.remove();
-  const cuisines = ['Any cuisine','American','Italian','Mexican','Chinese','Japanese','Thai','Indian','Mediterranean','BBQ','Seafood','Pizza','Burgers','Sushi'];
+  const cuisines = ['Any cuisine','American','Pizza','BBQ','Mexican','Burgers','Southern','Sushi','Italian','Asian','Seafood'];
   const budgets = [
     { label: 'Any budget', value: 'Any' },
     { label: '$ · Under $15', value: '$' },
@@ -1338,20 +1391,22 @@ function openRefineSheet(focusSection) {
 }
 
 function pickBudgetInline(val) {
-  // Update all budget rows visually
   const sheet = document.getElementById('refine-sheet');
   if (!sheet) return;
-  sheet.querySelectorAll('.sheet-row').forEach((row, i) => {
-    const budgets = ['Any','$','$$','$$$'];
-    if (i < budgets.length) {
-      const isActive = budgets[i] === val;
-      row.classList.toggle('active', isActive);
-      const check = row.querySelector('span:last-child');
-      if (check) check.textContent = isActive ? '✓' : '';
-      if (check) check.style.color = 'var(--accent)';
-    }
+  // If tapping the currently-selected non-Any budget, deselect back to Any
+  const effectiveVal = (state.budget === val && val !== 'Any') ? 'Any' : val;
+  state.budget = effectiveVal;
+  // Update only the budget rows by their onclick data attribute
+  sheet.querySelectorAll('[onclick^="pickBudgetInline"]').forEach(row => {
+    // Extract the value from onclick="pickBudgetInline('X')"
+    const match = row.getAttribute('onclick').match(/pickBudgetInline\('([^']+)'\)/);
+    if (!match) return;
+    const rowVal = match[1];
+    const isActive = rowVal === effectiveVal;
+    row.classList.toggle('active', isActive);
+    const check = row.querySelector('span:last-child');
+    if (check) { check.textContent = isActive ? '✓' : ''; check.style.color = 'var(--accent)'; }
   });
-  state.budget = val;
 }
 
 function pickCuisineInline(cuisine) {
@@ -1586,11 +1641,11 @@ function isChain(place) {
 
 // Mood → search config mapping
 const moodConfig = {
-  comfort:   { keyword: 'comfort food soul food home cooking', minPrice: 0, maxPrice: 2 },
-  adventure: { keyword: 'unique ethnic fusion international restaurant', minPrice: 1, maxPrice: 3 },
-  fancy:     { keyword: 'fine dining upscale steakhouse restaurant', minPrice: 2, maxPrice: 4 },
-  quick:     { keyword: 'fast casual sandwich burrito bowl', minPrice: 0, maxPrice: 2 },
-  social:    { keyword: 'bar dive bar sports bar wine bar brewery taproom gastropub', minPrice: 0, maxPrice: 3, type: 'bar' },
+  comfort:   { keyword: 'cozy comfort food restaurant', minPrice: 0, maxPrice: 3 },
+  fancy:     { keyword: 'upscale fine dining restaurant', minPrice: 2, maxPrice: 4 },
+  adventure: { keyword: 'unique eclectic interesting restaurant', minPrice: 0, maxPrice: 3 },
+  quick:     { keyword: 'fast casual quick bite', minPrice: 0, maxPrice: 2, type: 'restaurant' },
+  social:    { keyword: 'lively social restaurant bar', minPrice: 0, maxPrice: 3 },
   feed:      { keyword: 'restaurant', minPrice: 0, maxPrice: 4 },
   search:    { keyword: 'restaurant', minPrice: 0, maxPrice: 4 },
 };
