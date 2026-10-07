@@ -40,7 +40,11 @@
 [data-theme="dark"] body { background: #000; }
 [data-theme="dark"] .shell { background: var(--bg); box-shadow: 0 28px 64px rgba(0,0,0,0.5); }
 [data-theme="dark"] .skel-photo,
-[data-theme="dark"] .skel-line { background: linear-gradient(90deg, #2c2c2e 25%, #3a3a3c 50%, #2c2c2e 75%); background-size: 200% 100%; }
+[data-theme="dark"] .skel-line {
+  background: linear-gradient(90deg, #2c2c2e 25%, #3a3a3c 50%, #2c2c2e 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
 [data-theme="dark"] .r-card { background: var(--card); }
 [data-theme="dark"] .sheet-panel { background: #1c1c1e; }
 [data-theme="dark"] .bottom-sheet .sheet-panel { background: #1c1c1e; }
@@ -364,8 +368,11 @@ body {
   background: var(--card);
   border-bottom: 1px solid var(--sep-lt);
   padding: 10px 16px 14px;
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center;
   flex-shrink: 0;
+}
+.nav-back {
+  flex: 1; display: flex; align-items: center;
 }
 .back-btn {
   display: flex; align-items: center; gap: 3px;
@@ -373,7 +380,10 @@ body {
   cursor: pointer; flex-shrink: 0;
 }
 .back-btn svg { width: 9px; height: 16px; }
-.nav-center { flex: 1; text-align: center; }
+.nav-center { flex: 2; text-align: center; }
+.nav-actions {
+  flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+}
 .nav-title {
   font-family: var(--display);
   font-size: 18px; font-style: italic; font-weight: 400;
@@ -423,8 +433,42 @@ body {
   background: var(--card);
 }
 .sort-btn.active {
-  background: var(--ink); border-color: var(--ink); color: #fff;
+  background: var(--accent); border-color: var(--accent); color: #fff;
 }
+
+/* ─── GENERIC BOTTOM SHEET (budget/cuisine/refine pickers) ── */
+.bottom-sheet {
+  position: absolute; inset: 0; z-index: 250;
+  pointer-events: none;
+}
+.bottom-sheet.open {
+  pointer-events: all;
+}
+.sheet-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.45);
+}
+.sheet-panel {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: var(--card);
+  border-radius: 20px 20px 0 0;
+  padding: 0 20px 24px;
+  max-height: 80vh; overflow-y: auto;
+  z-index: 1;
+}
+.sheet-title {
+  font-size: 17px; font-weight: 700;
+  color: var(--ink); padding: 16px 0 12px;
+}
+.sheet-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--sep-lt);
+  font-size: 15px; color: var(--ink); cursor: pointer;
+  font-weight: 500;
+}
+.sheet-row:last-of-type { border-bottom: none; }
+.sheet-row.active { color: var(--accent); font-weight: 600; }
 
 /* ─── DETAIL BOTTOM SHEET ───────────────────────────────── */
 #detail-sheet {
@@ -783,7 +827,7 @@ body {
     </div>
 
     <div class="cta-wrap" id="ctaWrap">
-      <button class="cta-btn" onclick="goResults()">
+      <button class="cta-btn" onclick="goFindMySpot()">
         Find My Spot
         <span class="cta-tag" id="ctaTag">Near you now</span>
       </button>
@@ -906,15 +950,17 @@ body {
   </div>
 
   <div class="navbar">
-    <div class="back-btn" onclick="goBack()">
-      <svg viewBox="0 0 9 16" fill="none"><path d="M8 1L1 8l7 7" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Back
+    <div class="nav-back">
+      <div class="back-btn" onclick="goBack()">
+        <svg viewBox="0 0 9 16" fill="none"><path d="M8 1L1 8l7 7" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back
+      </div>
     </div>
     <div class="nav-center">
       <div class="nav-title" id="results-nav-title">Comfort</div>
       <div class="nav-sub" id="results-nav-sub">Augusta, GA</div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;">
+    <div class="nav-actions">
       <div id="dark-toggle-results" onclick="toggleDarkMode()" style="width:30px;height:30px;border-radius:50%;background:var(--sep-lt);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
         <svg id="dark-icon-results" viewBox="0 0 24 24" width="15" height="15" fill="var(--ink3)"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
       </div>
@@ -927,7 +973,7 @@ body {
 
   <div class="context-strip" id="results-context-strip">
     <div class="ctx-pill mood" id="results-mood-pill">Comfort</div>
-    <div class="ctx-pill" id="results-budget-pill" onclick="openBudgetPicker()" style="cursor:pointer" title="Tap to change budget">Any budget</div>
+    <div class="ctx-pill" id="results-budget-pill" onclick="openBudgetPicker()" style="cursor:pointer;" title="Tap to change budget">Any budget</div>
     <div class="ctx-pill" id="results-cuisine-pill" onclick="openCuisineFilter()" style="cursor:pointer" title="Tap to filter by cuisine">Any cuisine</div>
     <div class="ctx-pill" id="results-localonly-pill" onclick="toggleLocalOnly()" style="cursor:pointer" title="Toggle local-only">Local only</div>
   </div>
@@ -1605,10 +1651,31 @@ function openMenuForPlace(placeId, encodedName, encodedWebsite) {
 }
 
 /* ─── SEARCH ─────────────────────────────────────────────── */
-document.getElementById('quickInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && e.target.value.trim()) {
+function goFindMySpot() {
+  const input = document.getElementById('quickInput');
+  const query = input ? input.value.trim() : '';
+  if (query) {
+    state.cuisine = query;
     state.mood = 'search';
     state.moodEmoji = '🔍';
+    // Override moodConfig for cuisine search — no price restriction
+    moodConfig['search'] = { keyword: `${query} restaurant`, minPrice: 0, maxPrice: 4 };
+  } else {
+    if (!state.mood) {
+      state.mood = 'feed';
+      state.moodEmoji = '🍽️';
+      state.isDrinksMode = false;
+    }
+  }
+  navigate('results');
+}
+
+document.getElementById('quickInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.value.trim()) {
+    state.cuisine = e.target.value.trim();
+    state.mood = 'search';
+    state.moodEmoji = '🔍';
+    moodConfig['search'] = { keyword: `${e.target.value.trim()} restaurant`, minPrice: 0, maxPrice: 4 };
     navigate('results');
     e.target.blur();
   }
@@ -1620,18 +1687,18 @@ document.getElementById('quickInput').addEventListener('keydown', e => {
 const PLACES_KEY = 'AIzaSyA3Uvt9HcTG5-gaI9KA-LpZ5Hvqsv9-8B0';
 
 // Known national chains to filter out when localOnly is active
+// Regional chains (Carolina Ale House, World of Beer, Cheddar's, etc.) are intentionally NOT listed
 const CHAIN_NAMES = [
   'mcdonald','burger king','wendy','chick-fil-a','taco bell','subway','domino',
   'pizza hut','papa john','little caesar','popeyes','kfc','bojangles','hardee',
-  'sonic','arby','dairy queen','applebee','chili','olive garden','red lobster',
-  'outback','ihop','denny','waffle house','cracker barrel','golden corral',
-  'panera','starbucks','dunkin','chipotle','qdoba','panda express','five guys',
-  'shake shack','whataburger','cookout','zaxby','cook out','raising cane',
-  'wingstop','buffalo wild wings','hooters','twin peaks','longhorn','texas roadhouse',
-  'ruby tuesday','cheesecake factory','red robin','noodles & company','potbelly',
-  'jersey mike','jimmy john','firehouse','moe\'s','wingstop','captain d',
-  'church\'s chicken','el pollo loco','del taco','jack in the box','in-n-out',
-  'smoothie king','tropical smoothie','jamba','auntie anne','cinnabon','pretzelmaker'
+  'sonic','arby','dairy queen','ihop','denny','waffle house','cracker barrel',
+  'golden corral','panera','starbucks','dunkin','chipotle','qdoba','panda express',
+  'five guys','shake shack','whataburger','cook out','zaxby','raising cane',
+  'wingstop','buffalo wild wings','longhorn steakhouse','texas roadhouse',
+  'cheesecake factory','outback steakhouse','olive garden','applebee','chili\'s',
+  'tgi friday','red lobster','jack in the box','del taco','el pollo loco',
+  'church\'s chicken','captain d','smoothie king','tropical smoothie','jamba juice',
+  'jersey mike','jimmy john','firehouse subs','potbelly'
 ];
 
 function isChain(place) {
